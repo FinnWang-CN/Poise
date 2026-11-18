@@ -1,6 +1,6 @@
 # Poise · 轻衡
 
-[Download Android APK / 下载安卓版](https://github.com/wang161113/Poise/releases/latest)
+[Website / 软件主页](https://wang161113.github.io/Poise/) · [Download Android APK / 下载安卓版](https://github.com/wang161113/Poise/releases/latest)
 
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
@@ -101,3 +101,9 @@ Health Connect / HealthKit 接入方式、权限和安装步骤见 [健康数据
 
 `fl_chart`（MIT）、`shared_preferences` 与 Flutter（BSD 风格许可）；依赖许可应以锁定版本的 LICENSE 为准。
 本地字体是 Noto Sans CJK SC 的子集，采用 SIL Open Font License，完整声明见 [字体许可](assets/fonts/LICENSE.txt)。
+
+## Website / 软件站点
+
+站点源码位于 `website/`，使用静态 HTML/CSS/JavaScript，无需构建。`website/release.json` 保存版本号、APK 地址、网盘地址和校验值；更新后推送到 main，GitHub Actions 自动部署到 Pages。
+
+Local preview: `python3 -m http.server 8080 --directory website`.
