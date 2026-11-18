@@ -7,7 +7,7 @@ on:
         required: true
         default: v0.6.0
       apk_url:
-        description: Temporary APK download URL from litter.catbox.moe
+        description: APK download URL from litter.catbox.moe or files.catbox.moe
         required: true
       sha256:
         description: Verified APK SHA-256
@@ -33,7 +33,7 @@ jobs:
           assert re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', os.environ['RELEASE_TAG'])
           assert re.fullmatch(r'[a-f0-9]{64}', os.environ['APK_SHA256'])
           url = urllib.parse.urlparse(os.environ['APK_URL'])
-          assert url.scheme == 'https' and url.hostname == 'litter.catbox.moe'
+          assert url.scheme == 'https' and url.hostname in ('litter.catbox.moe', 'files.catbox.moe')
           PYTHON
           export APK_NAME="poise-${RELEASE_TAG#v}-universal.apk"
           curl --fail --location --proto '=https' --max-time 180 "$APK_URL" --output "$APK_NAME"
