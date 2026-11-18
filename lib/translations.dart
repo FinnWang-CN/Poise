@@ -1,12 +1,25 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "此操作无法撤销，并会关闭自动同步。建议先导出备份；身高和目标设置会保留，系统健康原始记录不会删除。":
+      "This cannot be undone and turns off auto-sync. Export a backup first. Height and goal settings remain; original system health records are not deleted.",
+  "授权后可在打开 App 时自动同步，不会修改系统健康记录。":
+      "After authorization, health data can sync when you open the app. System records are never modified.",
+  "打开 App 自动同步": "Sync when opening the app",
+  "首次需点“授权并读取”；之后启动或回到 App 时按上次范围同步，不会再次弹出授权。":
+      "Tap Authorize and read once. Then sync the same range when opening or returning to the app, without permission prompts.",
+  "自动同步设置读取失败，请重新打开页面。": "Could not load auto-sync settings. Reopen this page.",
+  "自动同步设置保存失败，请重试。": "Could not save auto-sync settings. Please retry.",
+  "移除本地健康数据并关闭自动同步。手动记录和系统原始数据会保留，需要时可重新导入。":
+      "Remove local health copies and turn off auto-sync. Manual entries and original system data remain. You can import again later.",
+  "• 开启自动同步后，启动或回到 App 时读取上次选择的范围；可用上方开关关闭。":
+      "• Auto-sync reads the last selected range when opening or returning to the app. Turn it off with the switch above.",
   "{0} 斤": "{0} jin",
   "{0} 岁": "{0} years",
   "{0}（系统记录）": "{0} (system entry)",
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.6.0 · 身体记录": "Poise 0.6.0 · Body Journal",
+  "轻衡 0.7.0 · 身体记录": "Poise 0.7.0 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

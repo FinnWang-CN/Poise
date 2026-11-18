@@ -36,6 +36,32 @@ class HealthService {
     required DateTime end,
     required bool includeHeight,
   }) async {
+    return _read(
+      start: start,
+      end: end,
+      includeHeight: includeHeight,
+      requestAccess: true,
+    );
+  }
+
+  /// A foreground refresh must never open a permission dialog.
+  Future<HealthImport> readAuthorized({
+    required DateTime start,
+    required DateTime end,
+    required bool includeHeight,
+  }) => _read(
+    start: start,
+    end: end,
+    includeHeight: includeHeight,
+    requestAccess: false,
+  );
+
+  Future<HealthImport> _read({
+    required DateTime start,
+    required DateTime end,
+    required bool includeHeight,
+    required bool requestAccess,
+  }) async {
     if (!await available()) {
       throw StateError('系统健康服务不可用，请安装或更新 Health Connect。');
     }
@@ -45,7 +71,8 @@ class HealthService {
       if (includeHeight) HealthDataType.HEIGHT,
     ];
     final permissions = List.filled(types.length, HealthDataAccess.READ);
-    if (await _health.hasPermissions(types, permissions: permissions) != true) {
+    if (requestAccess &&
+        await _health.hasPermissions(types, permissions: permissions) != true) {
       await _health.requestAuthorization(types, permissions: permissions);
     }
     final samples = <HealthSample>[];

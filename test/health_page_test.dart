@@ -1,7 +1,9 @@
 import 'package:bodylog/health_page.dart';
+import 'package:bodylog/health_sync.dart';
 import 'package:bodylog/health_service.dart';
 import 'package:bodylog/model.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,6 +44,7 @@ class FakeService extends HealthService {
 }
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
   testWidgets(
     'health import previews, deduplicates, persists and clears only local copies',
     (tester) async {
@@ -82,6 +85,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(saved.healthSamples, hasLength(2));
       expect(saved.records.single.id, 'manual');
+      expect((await HealthSyncSettings.load()).connected, isTrue);
       await tester.tap(find.text('授权并读取'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
@@ -94,6 +98,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(saved.healthSamples, isEmpty);
       expect(saved.records.single.id, 'manual');
+      expect((await HealthSyncSettings.load()).enabled, isFalse);
     },
   );
 }

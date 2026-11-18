@@ -1,3 +1,4 @@
+import 'health_sync.dart';
 import 'language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,12 +25,57 @@ class _HealthPageState extends State<HealthPage> {
   late BodyData data = widget.initial;
   bool busy = false, height = false;
   int days = 30;
-  String status = '仅在你点击按钮后读取，不会修改系统健康记录。';
+  bool autoSync = true, syncSettingsReady = false;
+  String status = '授权后可在打开 App 时自动同步，不会修改系统健康记录。';
   bool? available;
   @override
   void initState() {
     super.initState();
     check();
+    loadSyncSettings();
+  }
+
+  Future<void> loadSyncSettings() async {
+    try {
+      final prefs = await HealthSyncSettings.load();
+      if (mounted) {
+        setState(() {
+          autoSync = prefs.enabled;
+          height = prefs.includeHeight;
+          days =
+              service.android
+                  ? (prefs.days > 30 ? 30 : prefs.days)
+                  : prefs.days;
+          syncSettingsReady = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => status = '自动同步设置读取失败，请重新打开页面。');
+    }
+  }
+
+  Future<bool> rememberConnection() async {
+    try {
+      await HealthSyncSettings.rememberConnection(
+        includeHeight: height,
+        days: days,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> setAutoSync(bool value) async {
+    setState(() => busy = true);
+    try {
+      await HealthSyncSettings.setEnabled(value);
+      if (mounted) setState(() => autoSync = value);
+    } catch (_) {
+      if (mounted) setState(() => status = '自动同步设置保存失败，请重试。');
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
   }
 
   Future<void> check() async {
@@ -64,6 +110,8 @@ class _HealthPageState extends State<HealthPage> {
             ..sort((a, b) => a.time.compareTo(b.time));
       final heights = latestHeight.isNotEmpty ? latestHeight.last.value : null;
       if (result.samples.isEmpty) {
+        await rememberConnection();
+        if (!mounted) return;
         setState(
           () =>
               status = [
@@ -114,10 +162,13 @@ class _HealthPageState extends State<HealthPage> {
         height: heights,
       );
       if (await widget.onSave(next) && mounted) {
+        final remembered = await rememberConnection();
+        if (!mounted) return;
         setState(() {
           data = next;
           status =
               '已导入或更新 ${result.samples.length} 条健康数据。\n${result.notices.join('\n')}';
+          if (!remembered) status += '\n自动同步设置保存失败，请重试。';
         });
       } else if (mounted) {
         setState(() => status = '保存失败，原有本地数据未改变。');
@@ -136,7 +187,7 @@ class _HealthPageState extends State<HealthPage> {
           (c) => AlertDialog(
             title: Text(tr(context, '移除健康数据副本？')),
             content: Text(
-              tr(context, '移除全部已导入的本地健康数据，手动记录和系统原始数据会保留。需要时可重新授权导入。'),
+              tr(context, '移除本地健康数据并关闭自动同步。手动记录和系统原始数据会保留，需要时可重新导入。'),
             ),
             actions: [
               TextButton(
@@ -152,6 +203,19 @@ class _HealthPageState extends State<HealthPage> {
     );
     if (yes != true || !mounted) return;
     setState(() => busy = true);
+    try {
+      await HealthSyncSettings.setEnabled(false);
+      if (!mounted) return;
+      setState(() => autoSync = false);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          busy = false;
+          status = '自动同步设置保存失败，请重试。';
+        });
+      }
+      return;
+    }
     final next = data.copyWith(healthSamples: []);
     if (await widget.onSave(next) && mounted) {
       setState(() {
@@ -194,6 +258,15 @@ class _HealthPageState extends State<HealthPage> {
               ),
               SizedBox(height: 20),
               if (service.supported) ...[
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(tr(context, '打开 App 自动同步')),
+                  subtitle: Text(
+                    tr(context, '首次需点“授权并读取”；之后启动或回到 App 时按上次范围同步，不会再次弹出授权。'),
+                  ),
+                  value: autoSync,
+                  onChanged: busy || !syncSettingsReady ? null : setAutoSync,
+                ),
                 DropdownButtonFormField<int>(
                   value: days,
                   decoration: InputDecoration(labelText: tr(context, '读取范围')),
@@ -224,7 +297,10 @@ class _HealthPageState extends State<HealthPage> {
                   onChanged: busy ? null : (v) => setState(() => height = v!),
                 ),
                 FilledButton.icon(
-                  onPressed: busy || available != true ? null : sync,
+                  onPressed:
+                      busy || !syncSettingsReady || available != true
+                          ? null
+                          : sync,
                   icon:
                       busy
                           ? SizedBox(
@@ -280,7 +356,7 @@ class _HealthPageState extends State<HealthPage> {
               Text(
                 tr(
                   context,
-                  '• 数据只保存在本机，不上传服务器、不用于广告。\n• 只申请读取权限，不写入或删除系统记录。\n• 体脂可独立显示趋势；同一来源、相差不超过 5 分钟的体脂才会关联到体重卡片。\n• 重复同步按来源和原始 ID 更新。系统删除记录不会自动删除已导入副本，可使用上方按钮移除后重新导入。\n• 可在 Health Connect 或苹果健康的 App 权限设置中撤回授权。撤权不等于删除本地副本。\n• iOS 出于隐私不披露读取权限状态，空结果可能是无数据或未授权。\n• 导出备份会将健康数据写入剪贴板，请妥善保管。',
+                  '• 数据只保存在本机，不上传服务器、不用于广告。\n• 开启自动同步后，启动或回到 App 时读取上次选择的范围；可用上方开关关闭。\n• 只申请读取权限，不写入或删除系统记录。\n• 体脂可独立显示趋势；同一来源、相差不超过 5 分钟的体脂才会关联到体重卡片。\n• 重复同步按来源和原始 ID 更新。系统删除记录不会自动删除已导入副本，可使用上方按钮移除后重新导入。\n• 可在 Health Connect 或苹果健康的 App 权限设置中撤回授权。撤权不等于删除本地副本。\n• iOS 出于隐私不披露读取权限状态，空结果可能是无数据或未授权。\n• 导出备份会将健康数据写入剪贴板，请妥善保管。',
                 ),
               ),
             ],

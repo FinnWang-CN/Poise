@@ -1,3 +1,5 @@
+import 'health_service.dart';
+import 'health_sync.dart';
 import 'language.dart';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
@@ -20,7 +22,8 @@ void main() {
 }
 
 class BodyApp extends StatefulWidget {
-  const BodyApp({super.key});
+  final HealthService? healthService;
+  const BodyApp({super.key, this.healthService});
   @override
   State<BodyApp> createState() => _BodyAppState();
 }
@@ -101,6 +104,7 @@ class _BodyAppState extends State<BodyApp> {
     home:
         ready
             ? Home(
+              healthService: widget.healthService,
               appearanceMode: mode,
               onAppearanceChanged: changeAppearance,
               language: language,
@@ -111,12 +115,14 @@ class _BodyAppState extends State<BodyApp> {
 }
 
 class Home extends StatefulWidget {
+  final HealthService? healthService;
   final AppLanguage language;
   final Future<bool> Function(AppLanguage)? onLanguageChanged;
   final ThemeMode appearanceMode;
   final Future<bool> Function(ThemeMode)? onAppearanceChanged;
   const Home({
     super.key,
+    this.healthService,
     this.language = AppLanguage.zh,
     this.onLanguageChanged,
     this.appearanceMode = ThemeMode.system,
@@ -126,7 +132,11 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
+  late final healthService = widget.healthService ?? HealthService();
+  bool healthSyncing = false;
+  DateTime? lastHealthAttempt;
+  int dataRevision = 0;
   final store = BodyStore();
   BodyData data = BodyData();
   bool loading = true, saving = false;
@@ -139,7 +149,86 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) autoSyncHealth();
+  }
+
+  Future<void> autoSyncHealth() async {
+    if (!mounted ||
+        loading ||
+        saving ||
+        loadError != null ||
+        healthSyncing ||
+        !healthService.supported ||
+        ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
+    final now = DateTime.now();
+    if (lastHealthAttempt != null &&
+        now.difference(lastHealthAttempt!) < Duration(minutes: 1)) {
+      return;
+    }
+    healthSyncing = true;
+    final revision = dataRevision;
+    try {
+      final settings = await HealthSyncSettings.load();
+      if (!mounted ||
+          revision != dataRevision ||
+          ModalRoute.of(context)?.isCurrent != true) {
+        return;
+      }
+      // Existing imported records migrate without asking for new permissions.
+      if (!settings.enabled ||
+          (!settings.connected && data.healthSamples.isEmpty)) {
+        return;
+      }
+      lastHealthAttempt = now;
+      final result = await healthService.readAuthorized(
+        start: now.subtract(
+          Duration(
+            days:
+                healthService.android ? min(30, settings.days) : settings.days,
+          ),
+        ),
+        end: now,
+        includeHeight: settings.includeHeight,
+      );
+      final stillEnabled = (await HealthSyncSettings.load()).enabled;
+      if (!mounted ||
+          saving ||
+          revision != dataRevision ||
+          ModalRoute.of(context)?.isCurrent != true ||
+          !stillEnabled ||
+          result.samples.isEmpty) {
+        return;
+      }
+      final heights =
+          result.samples.where((s) => s.kind == SampleKind.height).toList()
+            ..sort((a, b) => a.time.compareTo(b.time));
+      final next = data.copyWith(
+        healthSamples: mergeSamples(data.healthSamples, result.samples),
+        height:
+            settings.includeHeight && heights.isNotEmpty
+                ? heights.last.value
+                : null,
+      );
+      if (next.encode() != data.encode()) await save(next);
+    } catch (_) {
+      // Failed/unavailable/revoked reads preserve local data. Reauthorize manually.
+    } finally {
+      healthSyncing = false;
+    }
   }
 
   Future<void> load() async {
@@ -151,6 +240,7 @@ class _HomeState extends State<Home> {
           loading = false;
           loadError = null;
         });
+        autoSyncHealth();
       }
     } catch (_) {
       if (mounted) {
@@ -172,6 +262,7 @@ class _HomeState extends State<Home> {
 
   Future<bool> save(BodyData next) async {
     if (saving || loadError != null) return false;
+    dataRevision++;
     setState(() => saving = true);
     try {
       await store.save(next);
@@ -1292,7 +1383,12 @@ class _HomeState extends State<Home> {
                   ? null
                   : () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => HealthPage(initial: data, onSave: save),
+                      builder:
+                          (_) => HealthPage(
+                            initial: data,
+                            onSave: save,
+                            service: healthService,
+                          ),
                     ),
                   ),
         ),
@@ -1406,9 +1502,15 @@ class _HomeState extends State<Home> {
                 : () async {
                   if (await confirm(
                     '清空所有记录？',
-                    '此操作无法撤销，建议先导出备份。身高和目标设置会保留，系统健康原始记录不会删除。',
+                    '此操作无法撤销，并会关闭自动同步。建议先导出备份；身高和目标设置会保留，系统健康原始记录不会删除。',
                   )) {
-                    await save(data.copyWith(records: [], healthSamples: []));
+                    try {
+                      await HealthSyncSettings.setEnabled(false);
+                      if (!mounted) return;
+                      await save(data.copyWith(records: [], healthSamples: []));
+                    } catch (_) {
+                      message('自动同步设置保存失败，请重试。');
+                    }
                   }
                 },
         child: Text(
@@ -1419,7 +1521,7 @@ class _HomeState extends State<Home> {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.6.0 · 身体记录'),
+          tr(context, '轻衡 0.7.0 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),

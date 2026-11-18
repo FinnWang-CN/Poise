@@ -83,6 +83,47 @@ HealthSample sample(
   value: value,
 );
 void main() {
+  test(
+    'automatic Android read skips revoked types without requesting authorization',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final provider =
+          FakeHealth()
+            ..allowed = {HealthDataType.WEIGHT}
+            ..points = [point(HealthDataType.WEIGHT, 68, 'auto-weight')];
+      final result = await HealthService(health: provider).readAuthorized(
+        start: DateTime(2026, 11, 1),
+        end: DateTime(2026, 11, 18),
+        includeHeight: true,
+      );
+      expect(provider.requested, isNull);
+      expect(provider.queried, [HealthDataType.WEIGHT]);
+      expect(result.samples.single.kind, SampleKind.weight);
+      expect(result.notices, hasLength(2));
+    },
+  );
+  test(
+    'automatic HealthKit read never prompts despite unknown permission status',
+    () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      final provider =
+          FakeHealth()
+            ..points = [
+              point(HealthDataType.BODY_FAT_PERCENTAGE, .22, 'auto-fat'),
+            ];
+      final result = await HealthService(health: provider).readAuthorized(
+        start: DateTime(2026, 11, 1),
+        end: DateTime(2026, 11, 18),
+        includeHeight: false,
+      );
+      expect(provider.requested, isNull);
+      expect(provider.queried, [
+        HealthDataType.WEIGHT,
+        HealthDataType.BODY_FAT_PERCENTAGE,
+      ]);
+      expect(result.samples.single.value, 22);
+    },
+  );
   tearDown(() => debugDefaultTargetPlatformOverride = null);
   test(
     'iOS fractions become percentages; meters become cm; only READ requested',

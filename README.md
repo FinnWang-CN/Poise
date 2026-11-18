@@ -2,6 +2,8 @@
 
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
+Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app, without permission prompts. Turn this off under Settings → Health data.
+
 Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smooth trend charts. Read-only Health Connect / HealthKit integration, local .xlsx import, JSON backup, light/dark/system appearance, and stable-height daily record cards are included.
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
@@ -23,7 +25,7 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 
 ## 已实现
 
-0.6.0：英文名 **Poise**，支持中文 / English / 跟随系统语言，自动记忆；完整深浅色、稳定高度日历记录区与左右滑动切换。
+0.7.0：打开 App 自动同步已连接的 Health Connect / HealthKit；可在健康数据页关闭。英文名 **Poise**，支持中文 / English / 跟随系统语言，自动记忆；完整深浅色、稳定高度日历记录区与左右滑动切换。
 
 - 月历显示每日最后一次体重，月份切换、回到今天、全天/早上/下午/晚上筛选。
 - 同日多次测量，手动新增、修改、删除，体脂选填与备注。
@@ -32,7 +34,7 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 - 本机持久化、带版本的 JSON 备份复制和粘贴导入；导入替换前确认。
 - 本地中文字体和随语言切换的日期/时间选择器；Web 构建使用本地 CanvasKit。
 - Fitdays `.xlsx` 文件选择、导入预览、去重，全部原始字段详情及其他身体指标趋势；见 [文件导入说明](docs/FILE_IMPORT.md)。
-- Health Connect / HealthKit 只读导入体重、体脂率和可选身高；来源 ID 去重；独立体脂趋势。
+- Health Connect / HealthKit 只读导入体重、体脂率和可选身高；来源 ID 去重；独立体脂趋势。授权连接后，启动或回到 App 时自动同步，1 分钟内避免重复触发，可随时关闭。
 
 ## 启动
 
@@ -80,7 +82,7 @@ python3 -m http.server 4173 --directory build/web
 ## 验证情况
 
 - `flutter analyze`：无问题。
-- `flutter test`：41 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
+- `flutter test`：51 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
 - Web release 构建通过；Chromium 手机尺寸页面检查，截图为明确标注的演示数据。
 - Android release APK 构建与签名检查见交付验证记录；未进行模拟器、真机读取验证。iOS 已配置接入，Linux 环境未构建 IPA。
 
