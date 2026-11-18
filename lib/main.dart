@@ -1,3 +1,4 @@
+import 'keep_page.dart';
 import 'health_service.dart';
 import 'health_sync.dart';
 import 'language.dart';
@@ -836,7 +837,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       return painter.size;
     }
 
-    final time = measure('23:59', 12);
+    final clock = measure('23:59', 12);
+    final unknown = measure(tr(context, '仅日期'), 12);
+    final time = Size(
+      max(clock.width, unknown.width),
+      max(clock.height, unknown.height),
+    );
     final cellWidth = max(
       1.0,
       (cardWidth - 24 - max(24.0, time.width) - 20 - 24) / 3,
@@ -877,7 +883,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               Column(
                 children: [
                   Icon(
-                    r.time.hour < 12
+                    r.dateOnly
+                        ? CupertinoIcons.calendar
+                        : r.time.hour < 12
                         ? CupertinoIcons.sunrise
                         : r.time.hour < 18
                         ? CupertinoIcons.sun_max
@@ -887,7 +895,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   Text(
                     tr(
                       context,
-                      '${r.time.hour.toString().padLeft(2, '0')}:${r.time.minute.toString().padLeft(2, '0')}',
+                      r.dateOnly
+                          ? '仅日期'
+                          : '${r.time.hour.toString().padLeft(2, '0')}:${r.time.minute.toString().padLeft(2, '0')}',
                     ),
                     style: TextStyle(
                       color: paletteOf(context).secondary,
@@ -910,7 +920,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 child: valueCell(r.fat?.toStringAsFixed(1) ?? '—', '体脂率 %'),
               ),
               Icon(
-                r.healthKey != null ? Icons.lock_outline : Icons.chevron_right,
+                (r.healthKey != null || r.keepKey != null)
+                    ? Icons.lock_outline
+                    : Icons.chevron_right,
                 color: paletteOf(context).secondary,
               ),
             ],
@@ -921,6 +933,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
               child: Text(
                 (r.note == 'Fitdays 文件导入' ||
                         r.note.startsWith('演示数据 ·') ||
+                        r.keepKey != null ||
                         r.healthKey != null)
                     ? tr(context, r.note)
                     : r.note,
@@ -1236,7 +1249,12 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
         SizedBox(height: 6),
         Text(
-          tr(context, '趋势取每天最后一次测量，缺测不补零。'),
+          tr(
+            context,
+            data.keepSamples.isNotEmpty
+                ? 'Keep 日期记录不含测量时间；同日有精确时间的记录优先，缺测不补零。'
+                : '趋势取每天最后一次测量，缺测不补零。',
+          ),
           style: TextStyle(fontSize: 12, color: paletteOf(context).secondary),
         ),
         SizedBox(height: 12),
@@ -1254,14 +1272,20 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     IconButton(
                       tooltip: tr(
                         context,
-                        r.record?.healthKey != null ? '系统记录' : '编辑记录',
+                        r.record?.keepKey != null
+                            ? 'Keep 记录'
+                            : r.record?.healthKey != null
+                            ? '系统记录'
+                            : '编辑记录',
                       ),
                       onPressed:
                           saving || r.record == null
                               ? null
                               : () => edit(r.record),
                       icon: Icon(
-                        r.record?.healthKey != null
+                        r.record?.keepKey != null
+                            ? Icons.link
+                            : r.record?.healthKey != null
                             ? Icons.cloud_done_outlined
                             : Icons.edit_outlined,
                         size: 18,
@@ -1420,6 +1444,25 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     ),
                   ),
         ),
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: settingIcon(CupertinoIcons.link, Color(0xFF1D8276)),
+          title: Text(tr(context, 'Keep 身体记录')),
+          subtitle: Text(tr(context, '授权读取体重、体脂与身体档案')),
+          trailing: Icon(
+            CupertinoIcons.chevron_forward,
+            size: 15,
+            color: paletteOf(context).secondary,
+          ),
+          onTap:
+              saving
+                  ? null
+                  : () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => KeepPage(initial: data, onSave: save),
+                    ),
+                  ),
+        ),
       ]),
       settingGroup('身体档案', [
         ListTile(
@@ -1457,7 +1500,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           subtitle: Text(
             tr(
               context,
-              '本地 ${data.records.length} 条 · 健康 ${data.healthSamples.length} 条',
+              '本地 ${data.records.length} 条 · 健康 ${data.healthSamples.length} 条 · Keep ${data.keepSamples.length} 天',
             ),
           ),
           trailing: Icon(
@@ -1502,7 +1545,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             Text(
               tr(
                 context,
-                '数据仅保存在当前设备，不上传服务器。卸载应用或清理浏览器数据可能丢失记录，请定期备份。可在健康数据页导入系统记录；智能秤直连尚未接入。',
+                '导入记录保存在当前设备。连接 Keep 时会向 Keep 发送授权和查询请求，不上传你的其他健康记录；登录凭据不进入 JSON 备份。卸载或清理数据可能丢失记录，请定期备份。智能秤直连尚未接入。',
               ),
             ),
             SizedBox(height: 10),
@@ -1516,7 +1559,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           ],
         ),
       ),
-      if (data.records.isEmpty && data.healthSamples.isEmpty)
+      if (data.records.isEmpty &&
+          data.healthSamples.isEmpty &&
+          data.keepSamples.isEmpty)
         OutlinedButton.icon(
           onPressed: saving ? null : demo,
           icon: Icon(CupertinoIcons.chart_bar, size: 18),
@@ -1524,7 +1569,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
       TextButton(
         onPressed:
-            saving || (data.records.isEmpty && data.healthSamples.isEmpty)
+            saving ||
+                    (data.records.isEmpty &&
+                        data.healthSamples.isEmpty &&
+                        data.keepSamples.isEmpty)
                 ? null
                 : () async {
                   if (await confirm(
@@ -1534,7 +1582,13 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     try {
                       await HealthSyncSettings.setEnabled(false);
                       if (!mounted) return;
-                      await save(data.copyWith(records: [], healthSamples: []));
+                      await save(
+                        data.copyWith(
+                          records: [],
+                          healthSamples: [],
+                          keepSamples: [],
+                        ),
+                      );
                     } catch (_) {
                       message('自动同步设置保存失败，请重试。');
                     }
@@ -1548,7 +1602,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.7.1 · 身体记录'),
+          tr(context, '轻衡 0.8.0 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),
@@ -1556,6 +1610,44 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     ],
   );
   Future<void> edit([Measurement? existing]) async {
+    if (existing?.keepKey != null) {
+      await showDialog<void>(
+        context: context,
+        builder:
+            (c) => AlertDialog(
+              title: Text(tr(context, 'Keep 记录')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(dateLabel(existing!.time)),
+                  Text(
+                    tr(
+                      context,
+                      '体重 ${data.displayWeight(existing.kg).toStringAsFixed(2)} ${data.unit}',
+                    ),
+                  ),
+                  Text('BMI ${existing.bmi(data.height).toStringAsFixed(1)}'),
+                  if (existing.fat != null)
+                    Text(
+                      tr(context, '体脂率 ${existing.fat!.toStringAsFixed(1)}%'),
+                    ),
+                  SizedBox(height: 12),
+                  Text(
+                    tr(context, 'Keep 仅提供日期，未提供测量时间。在 Keep 中修改后，可重新读取并更新此处记录。'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(c),
+                  child: Text(tr(context, '关闭')),
+                ),
+              ],
+            ),
+      );
+      return;
+    }
     if (existing?.healthKey != null) {
       message('系统记录请在来源 App 中修改，再到健康数据页重新同步。');
       return;
@@ -2005,7 +2097,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     if (next == null || !mounted) return;
     if (await confirm(
       '替换当前数据？',
-      '导入 ${next.records.length} 条手动记录和 ${next.healthSamples.length} 条健康数据，替换当前全部记录和设置。请先备份现有数据。',
+      '导入 ${next.records.length} 条手动记录、${next.healthSamples.length} 条健康数据和 ${next.keepSamples.length} 天 Keep 数据，替换当前全部记录和设置。请先备份现有数据。',
     )) {
       if (await save(next)) message('备份已导入');
     }

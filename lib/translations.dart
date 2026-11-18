@@ -1,5 +1,102 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "设备安全存储不可用，请检查系统后重试。":
+      "Device secure storage is unavailable. Check your system and retry.",
+  "Keep 身体记录": "Keep body journal",
+  "连接已有数据，接着记录变化。": "Bring your existing measurements along.",
+  "授权读取体重、体脂与身体档案": "Connect weight, body fat and profile",
+  "连接 Keep": "Connect Keep",
+  "Keep 登录信息无效，请重新连接。": "Invalid Keep login. Please reconnect.",
+  "Keep 授权已失效，请重新连接。": "Keep access has expired. Please reconnect.",
+  "Keep 服务暂不可用，请稍后重试。": "Keep is temporarily unavailable. Try again later.",
+  "Keep 返回错误，请重新连接后重试。": "Keep returned an error. Reconnect and try again.",
+  "Keep 返回格式有变化，请稍后重试。":
+      "The Keep response format has changed. Try again later.",
+  "Keep 请求失败或授权已失效，请重新连接后重试。":
+      "The Keep request failed or access expired. Reconnect and try again.",
+  "无法获取 Keep 授权二维码，请重试。":
+      "Could not get a Keep authorization code. Please retry.",
+  "Keep 二维码已过期或授权失败，请重新获取。":
+      "The Keep code expired or authorization failed. Request a new code.",
+  "读取范围无效。": "Invalid date range.",
+  "已跳过无效或超出读取范围的 Keep 数据。": "Skipped invalid or out-of-range Keep data.",
+  "未识别体脂率明细，请检查 Keep 返回内容。":
+      "Could not recognize body fat entries. Check the Keep response.",
+  "未识别体重明细，请检查 Keep 返回内容。":
+      "Could not recognize weight entries. Check the Keep response.",
+  "同一天存在不同数值，已跳过该日该项，请在 Keep 中核对。":
+      "Conflicting values on the same day were skipped. Check them in Keep.",
+  "连接 Keep 失败，请检查网络后重试。":
+      "Could not connect to Keep. Check your network and retry.",
+  "正在连接 Keep…": "Connecting to Keep…",
+  "请用 Keep 扫码或打开授权页面，正在等待确认。":
+      "Scan with Keep or open the authorization page. Waiting for confirmation.",
+  "Keep 连接成功。": "Connected to Keep.",
+  "已取消 Keep 连接。": "Keep connection cancelled.",
+  "无法打开授权页面，请使用另一台设备扫描二维码。":
+      "Could not open the authorization page. Scan the code with another device.",
+  "正在读取 Keep 数据…": "Reading Keep data…",
+  "未读到可导入的日期记录。": "No dated entries available to import.",
+  "读取完成，请核对后导入。": "Ready. Review the results before importing.",
+  "Keep 数据已导入，重复读取不会新增相同日期记录。":
+      "Keep data imported. Reading again updates the same daily entries.",
+  "已断开 Keep 连接，已导入记录保留。": "Disconnected from Keep. Imported entries are kept.",
+  "本机登录信息已清除，Keep 远端撤销失败。":
+      "Local login cleared. Keep could not revoke remote access.",
+  "移除 Keep 数据副本？": "Remove local Keep copies?",
+  "只移除 Poise 内的 Keep 记录，手动记录、健康数据和 Keep 原始记录均保留。":
+      "Only removes Keep entries in Poise. Manual entries, system health data and original Keep records remain.",
+  "Keep 本地副本已移除。": "Local Keep copies removed.",
+  "读取结果": "Results",
+  "{0} 天记录 · 体重 {1} 天 · 体脂 {2} 天": "{0} days · Weight: {1} · Body fat: {2}",
+  "Keep 最新身高：{0} cm": "Latest Keep height: {0} cm",
+  "Keep BMI：{0}": "Keep BMI: {0}",
+  "身高和 Keep BMI 未提供记录日期，仅展示最新查询值，不作为历史测量。":
+      "Height and Keep BMI have no measurement date. These are the latest queried values, not historical measurements.",
+  "使用 Keep 身高更新身体档案": "Use Keep height in my profile",
+  "更新身高会重新计算历史 BMI。": "Updating height recalculates historical BMI.",
+  "预览仅显示前 5 天，确认后导入全部已识别记录。":
+      "Preview shows the first 5 days. Confirm to import all recognized entries.",
+  "已导入": "Imported",
+  "查看 Keep 返回内容": "View the Keep response",
+  "读取 Keep 的体重、体脂及最新身高和 BMI。只有确认导入后才会写入 Poise，Keep 原始记录不会修改。":
+      "Read Keep weight, body fat and the latest height and BMI. Data is saved in Poise only after you confirm. Original Keep records are never modified.",
+  "Keep 连接仅支持 Android / iOS 原生 App，网页预览不支持。":
+      "Keep connection is available in the Android / iOS app, not the web preview.",
+  "授权已过期，请重新连接。": "Access expired. Please reconnect.",
+  "已连接 Keep": "Connected to Keep",
+  "断开连接": "Disconnect",
+  "授权连接 Keep": "Authorize Keep",
+  "二维码加载失败，可使用下方授权链接。":
+      "The code could not load. Use the authorization link below.",
+  "请用 Keep 扫码，或在本机打开授权页面完成确认。":
+      "Scan with Keep, or open the authorization page on this device to confirm.",
+  "打开 Keep 授权页面": "Open Keep authorization",
+  "取消连接": "Cancel connection",
+  "读取 Keep 数据": "Read Keep data",
+  "重新授权": "Authorize again",
+  "已保存 {0} 天 Keep 数据": "{0} days of Keep data saved",
+  "移除 Keep 本地副本": "Remove local Keep copies",
+  "Keep 数据说明": "About Keep data",
+  "Keep 当前只返回日期和数值，不提供测量时分秒及原始 ID。Poise 按账号和日期更新 Keep 每日值，日期记录仅显示在“全天”，不会伪造测量时间。同日有精确时间的其他来源记录优先用于主趋势。":
+      "Keep currently returns dates and values, without precise times or original IDs. Poise updates daily values by account and date. Date-only entries appear under All day, without invented times. Timed entries from other sources take priority for the main daily trend.",
+  "登录凭据由设备安全存储保存，不进入 JSON 备份。连接时仅向 Keep 发送授权和查询请求，不上传你的其他健康记录。此版本暂不自动同步 Keep；读取结果需核对后导入。":
+      "Login credentials use device secure storage and are excluded from JSON backups. Only authorization and query requests are sent to Keep, never your other health records. This version does not auto-sync Keep; review results before importing.",
+  "仅日期": "Date only",
+  "Keep · 日期记录": "Keep · Date-only entry",
+  "Keep 记录": "Keep entry",
+  "体脂率 {0}%": "Body fat {0}%",
+  "Keep 仅提供日期，未提供测量时间。在 Keep 中修改后，可重新读取并更新此处记录。":
+      "Keep provides a date without a measurement time. Edit in Keep, then read again to update this entry.",
+  "本地 {0} 条 · 健康 {1} 条 · Keep {2} 天":
+      "Local: {0} · Health: {1} · Keep: {2} days",
+  "导入 {0} 条手动记录、{1} 条健康数据和 {2} 天 Keep 数据，替换当前全部记录和设置。请先备份现有数据。":
+      "Import {0} manual entries, {1} health samples and {2} days from Keep, replacing current records and profile settings. Back up existing data first.",
+  "导入记录保存在当前设备。连接 Keep 时会向 Keep 发送授权和查询请求，不上传你的其他健康记录；登录凭据不进入 JSON 备份。卸载或清理数据可能丢失记录，请定期备份。智能秤直连尚未接入。":
+      "Imported entries stay on this device. Connecting to Keep sends authorization and query requests to Keep, never your other health records. Login credentials are excluded from JSON backups. Uninstalling or clearing data may erase entries; back up regularly. Direct smart-scale connections are not yet available.",
+  "Keep 日期记录不含测量时间；同日有精确时间的记录优先，缺测不补零。":
+      "Keep date-only entries have no measurement time. Timed entries take priority on the same day. Missing days are not filled with zero.",
+
   "偏好设置": "Preferences",
   "此操作无法撤销，并会关闭自动同步。建议先导出备份；身高和目标设置会保留，系统健康原始记录不会删除。":
       "This cannot be undone and turns off auto-sync. Export a backup first. Height and goal settings remain; original system health records are not deleted.",
@@ -20,7 +117,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.7.1 · 身体记录": "Poise 0.7.1 · Body Journal",
+  "轻衡 0.8.0 · 身体记录": "Poise 0.8.0 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

@@ -22,7 +22,8 @@ class Measurement {
   final double kg;
   final double? fat;
   final String note;
-  final String? healthKey;
+  final String? healthKey, keepKey;
+  final bool dateOnly;
   final Map<String, String> extras;
   const Measurement({
     required this.id,
@@ -31,6 +32,8 @@ class Measurement {
     this.fat,
     this.note = '',
     this.healthKey,
+    this.keepKey,
+    this.dateOnly = false,
     this.extras = const {},
   });
   double bmi(double heightCm) => kg / ((heightCm / 100) * (heightCm / 100));
@@ -42,6 +45,8 @@ class Measurement {
     'note': note,
     if (extras.isNotEmpty) 'extras': extras,
     if (healthKey != null) 'healthKey': healthKey,
+    if (keepKey != null) 'keepKey': keepKey,
+    if (dateOnly) 'dateOnly': true,
   };
   factory Measurement.fromJson(Map<String, dynamic> j) {
     final r = Measurement(
@@ -51,6 +56,8 @@ class Measurement {
       fat: (j['fat'] as num?)?.toDouble(),
       note: j['note'] as String? ?? '',
       healthKey: j['healthKey'] as String?,
+      keepKey: j['keepKey'] as String?,
+      dateOnly: j['dateOnly'] as bool? ?? false,
       extras: Map<String, String>.from(j['extras'] as Map? ?? {}),
     );
     if (r.time.year < 1900 ||
@@ -71,25 +78,104 @@ class Measurement {
   }
 }
 
+int compareMeasurements(Measurement a, Measurement b) {
+  final c = a.time.compareTo(b.time);
+  return c != 0 ? c : (a.dateOnly ? 0 : 1).compareTo(b.dateOnly ? 0 : 1);
+}
+
+/// Keep exposes daily values, not precise measurement timestamps or source IDs.
+class KeepSample {
+  final String account;
+  final DateTime date;
+  final double? kg, fat;
+  const KeepSample({
+    required this.account,
+    required this.date,
+    this.kg,
+    this.fat,
+  });
+  String get key => jsonEncode([account, dateLabel(date)]);
+  Measurement? get measurement =>
+      kg == null
+          ? null
+          : Measurement(
+            id: 'keep:$key',
+            keepKey: key,
+            dateOnly: true,
+            time: dayOf(date),
+            kg: kg!,
+            fat: fat,
+            note: 'Keep · 日期记录',
+          );
+  Map<String, dynamic> toJson() => {
+    'account': account,
+    'date': dateLabel(date),
+    if (kg != null) 'kg': kg,
+    if (fat != null) 'fat': fat,
+  };
+  factory KeepSample.fromJson(Map<String, dynamic> j) {
+    final text = j['date'] as String;
+    final d = DateTime.parse(text);
+    final r = KeepSample(
+      account: j['account'] as String,
+      date: d,
+      kg: (j['kg'] as num?)?.toDouble(),
+      fat: (j['fat'] as num?)?.toDouble(),
+    );
+    if (dateLabel(d) != text ||
+        d.year < 1900 ||
+        d.year > 2200 ||
+        r.account.isEmpty ||
+        r.account.length > 128 ||
+        (r.kg == null && r.fat == null) ||
+        (r.kg != null && (!r.kg!.isFinite || r.kg! < 10 || r.kg! > 500)) ||
+        (r.fat != null && (!r.fat!.isFinite || r.fat! <= 0 || r.fat! >= 100))) {
+      throw const FormatException('Keep 数据不合法');
+    }
+    return r;
+  }
+}
+
+List<KeepSample> mergeKeepSamples(
+  List<KeepSample> old,
+  List<KeepSample> incoming,
+) {
+  final rows = {for (final r in old) r.key: r};
+  for (final r in incoming) {
+    final before = rows[r.key];
+    rows[r.key] = KeepSample(
+      account: r.account,
+      date: r.date,
+      kg: r.kg ?? before?.kg,
+      fat: r.fat ?? before?.fat,
+    );
+  }
+  return rows.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+}
+
 class BodyData {
   final List<Measurement> records;
   final double height;
   final double goal;
   final bool jin;
   final List<HealthSample> healthSamples;
+  final List<KeepSample> keepSamples;
   BodyData({
     List<Measurement>? records,
     this.height = 170,
     this.goal = 65,
     this.jin = false,
+    List<KeepSample>? keepSamples,
     List<HealthSample>? healthSamples,
   }) : records = List.unmodifiable(records ?? []),
-       healthSamples = List.unmodifiable(healthSamples ?? []);
+       healthSamples = List.unmodifiable(healthSamples ?? []),
+       keepSamples = List.unmodifiable(keepSamples ?? []);
   BodyData copyWith({
     List<Measurement>? records,
     double? height,
     double? goal,
     bool? jin,
+    List<KeepSample>? keepSamples,
     List<HealthSample>? healthSamples,
   }) => BodyData(
     records: records ?? this.records,
@@ -97,11 +183,13 @@ class BodyData {
     goal: goal ?? this.goal,
     jin: jin ?? this.jin,
     healthSamples: healthSamples ?? this.healthSamples,
+    keepSamples: keepSamples ?? this.keepSamples,
   );
   String get unit => jin ? '斤' : 'kg';
   double displayWeight(double kg) => jin ? kg * 2 : kg;
   String encode() => const JsonEncoder.withIndent('  ').convert({
-    'version': 2,
+    'version': 3,
+    'keepSamples': keepSamples.map((s) => s.toJson()).toList(),
     'healthSamples': healthSamples.map((s) => s.toJson()).toList(),
     'heightCm': height,
     'goalKg': goal,
@@ -110,7 +198,9 @@ class BodyData {
   });
   factory BodyData.decode(String source) {
     final j = jsonDecode(source) as Map<String, dynamic>;
-    if (![1, 2].contains(j['version'])) throw const FormatException('不支持的备份版本');
+    if (![1, 2, 3].contains(j['version'])) {
+      throw const FormatException('不支持的备份版本');
+    }
     final height = (j['heightCm'] as num).toDouble();
     final goal = (j['goalKg'] as num).toDouble();
     if (!height.isFinite ||
@@ -136,7 +226,15 @@ class BodyData {
     if (samples.map((s) => s.key).toSet().length != samples.length) {
       throw const FormatException('健康数据 ID 重复');
     }
+    final keep =
+        (j['keepSamples'] as List? ?? [])
+            .map((r) => KeepSample.fromJson(r as Map<String, dynamic>))
+            .toList();
+    if (keep.map((s) => s.key).toSet().length != keep.length) {
+      throw const FormatException('Keep 记录重复');
+    }
     return BodyData(
+      keepSamples: keep,
       healthSamples: samples,
       records: records,
       height: height,
@@ -146,6 +244,7 @@ class BodyData {
   }
   List<Measurement> get allRecords => [
     ...records,
+    ...keepSamples.map((s) => s.measurement).whereType<Measurement>(),
     ...healthSamples.where((s) => s.kind == SampleKind.weight).map((w) {
       final fats =
           healthSamples
@@ -180,7 +279,19 @@ class BodyData {
             ? [
               ...records
                   .where((r) => r.fat != null)
-                  .map((r) => TrendEntry(r.time, r.fat!, r)),
+                  .map(
+                    (r) => TrendEntry(r.time, r.fat!, r, dateOnly: r.dateOnly),
+                  ),
+              ...keepSamples
+                  .where((r) => r.fat != null)
+                  .map(
+                    (r) => TrendEntry(
+                      r.date,
+                      r.fat!,
+                      r.measurement,
+                      dateOnly: true,
+                    ),
+                  ),
               ...healthSamples
                   .where((s) => s.kind == SampleKind.fat)
                   .map((s) => TrendEntry(s.time, s.value, null)),
@@ -191,10 +302,14 @@ class BodyData {
                     r.time,
                     metric == 0 ? displayWeight(r.kg) : r.bmi(height),
                     r,
+                    dateOnly: r.dateOnly,
                   ),
                 )
                 .toList();
-    points.sort((a, b) => a.time.compareTo(b.time));
+    points.sort((a, b) {
+      final c = a.time.compareTo(b.time);
+      return c != 0 ? c : (a.dateOnly ? 0 : 1).compareTo(b.dateOnly ? 0 : 1);
+    });
     final days = <DateTime, TrendEntry>{};
     for (final p in points) {
       final d = dayOf(p.time);
@@ -234,7 +349,7 @@ class BodyData {
   List<TrendEntry> extraTrend(String key, DateTime start, DateTime end) {
     final desiredUnit = extraUnit(key);
     final days = <DateTime, TrendEntry>{};
-    final sorted = records.toList()..sort((a, b) => a.time.compareTo(b.time));
+    final sorted = records.toList()..sort(compareMeasurements);
     for (final r in sorted) {
       final d = dayOf(r.time);
       final reading = numericReading(r.extras[key] ?? '');
@@ -261,13 +376,16 @@ class BodyData {
 
   List<Measurement> onDay(DateTime day, Period period) =>
       allRecords
-          .where((r) => dayOf(r.time) == dayOf(day) && period.includes(r.time))
+          .where(
+            (r) =>
+                dayOf(r.time) == dayOf(day) &&
+                (r.dateOnly ? period == Period.all : period.includes(r.time)),
+          )
           .toList()
-        ..sort((a, b) => a.time.compareTo(b.time));
+        ..sort(compareMeasurements);
   List<Measurement> daily(DateTime start, DateTime end) {
     final days = <DateTime, Measurement>{};
-    final sorted =
-        allRecords.toList()..sort((a, b) => a.time.compareTo(b.time));
+    final sorted = allRecords.toList()..sort(compareMeasurements);
     for (final r in sorted) {
       final d = dayOf(r.time);
       if (!d.isBefore(dayOf(start)) && !d.isAfter(dayOf(end))) days[d] = r;
@@ -280,7 +398,8 @@ class TrendEntry {
   final DateTime time;
   final double value;
   final Measurement? record;
-  const TrendEntry(this.time, this.value, this.record);
+  final bool dateOnly;
+  const TrendEntry(this.time, this.value, this.record, {this.dateOnly = false});
 }
 
 enum SampleKind { weight, fat, height }

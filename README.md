@@ -4,7 +4,7 @@
 
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
-Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app, without permission prompts. Turn this off under Settings → Health data.
+Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app. Keep is a separate read-only source: authorize once, read daily weight/body-fat values, review, and import. Keep login uses device secure storage; no Keep auto-sync in this version. See [Keep connection](docs/KEEP.md).
 
 Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smooth trend charts. Read-only Health Connect / HealthKit integration, local .xlsx import, JSON backup, light/dark/system appearance, and stable-height daily record cards are included.
 
@@ -32,7 +32,7 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 
 ## 已实现
 
-0.7.1：统一收紧日历、趋势、设置、导入与健康数据页的留白，详细说明按需展开，移除单位存储说明；打开 App 自动同步已连接的 Health Connect / HealthKit；可在健康数据页关闭。英文名 **Poise**，支持中文 / English / 跟随系统语言，自动记忆；完整深浅色、稳定高度日历记录区与左右滑动切换。
+0.8.0：新增 **Keep 身体记录**，支持 App 内授权、设备安全保存登录、读取并预览日期级体重/体脂，确认后进入日历和趋势。最新身高可选导入，Keep BMI 单独展示；详见 [Keep 接入说明](docs/KEEP.md)。
 
 - 月历显示每日最后一次体重，月份切换、回到今天、全天/早上/下午/晚上筛选。
 - 同日多次测量，手动新增、修改、删除，体脂选填与备注；手动记录不能保存未来时间。
@@ -41,6 +41,7 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 - 本机持久化、带版本的 JSON 备份复制和粘贴导入；导入替换前确认。
 - 本地中文字体和随语言切换的日期/时间选择器；Web 构建使用本地 CanvasKit。
 - Fitdays `.xlsx` 文件选择、导入预览、去重，全部原始字段详情及其他身体指标趋势；见 [文件导入说明](docs/FILE_IMPORT.md)。
+- Keep 按账号与日期更新每日值；缺少测量时间时明确显示“仅日期”，仅在全天出现，原始 Keep BMI 不冒充历史测量。
 - Health Connect / HealthKit 只读导入体重、体脂率和可选身高；来源 ID 去重；独立体脂趋势。授权连接后，启动或回到 App 时自动同步，1 分钟内避免重复触发，可随时关闭。
 
 ## 启动
@@ -81,7 +82,7 @@ python3 -m http.server 4173 --directory build/web
 - 日历和趋势按设备本地日期分组，取每天最后一条记录；相同时间按列表顺序取最后一条。
 - 趋势缺测不补零；体脂页独立取当天最后一条有效体脂记录，包括无对应体重的系统样本。
 - BMI = kg / 身高(m)²；修改身高会影响历史 BMI 显示。
-- JSON version 2 含 heightCm、goalKg、unit、records、healthSamples；兼容导入 version 1；无效数值、重复 ID 和未知版本会被拒绝。
+- JSON version 3 含 heightCm、goalKg、unit、records、healthSamples、keepSamples；兼容导入 version 1 / 2，Keep 登录凭据不进入备份；无效数值、重复 ID 和未知版本会被拒绝。
 - 存储使用 shared_preferences，适用于当前的小规模 MVP；数据量变大时可迁移至 SQLite/Drift。
 - 备份通过系统剪贴板复制，不包含加密。清理应用/浏览器数据或卸载可能丢失记录，请自行保存备份。
 - 本地存储读取异常时不覆盖原数据，界面提供重试。本版本未实现损坏数据文件恢复工具。
@@ -89,7 +90,7 @@ python3 -m http.server 4173 --directory build/web
 ## 验证情况
 
 - `flutter analyze`：无问题。
-- `flutter test`：51 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
+- `flutter test`：63 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
 - Web release 构建通过；Chromium 手机尺寸页面检查，截图为明确标注的演示数据。
 - Android release APK 构建与签名检查见交付验证记录；未进行模拟器、真机读取验证。iOS 已配置接入，Linux 环境未构建 IPA。
 
