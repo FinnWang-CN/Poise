@@ -21,6 +21,19 @@ const path = require('path');
  await page.screenshot({path:shot('trend')});
  await page.mouse.click(325,812); await page.waitForTimeout(500);
  await page.screenshot({path:shot('settings')});
+ if(process.env.EXTRA_PAGES==='1') {
+  await page.mouse.click(170,350); await page.waitForTimeout(500);
+  await page.screenshot({path:shot('file-import')});
+  await page.mouse.click(28,28); await page.waitForTimeout(400);
+  await page.mouse.click(170,410); await page.waitForTimeout(500);
+  await page.screenshot({path:shot('health')});
+  await page.mouse.click(28,28); await page.waitForTimeout(400);
+  await page.mouse.click(65,812); await page.waitForTimeout(400);
+  await page.mouse.click(320,28); await page.waitForTimeout(500);
+  await page.screenshot({path:shot('editor')});
+  await page.keyboard.press('Escape'); await page.waitForTimeout(1200);
+  await page.mouse.click(325,812); await page.waitForTimeout(400);
+ }
  await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(500);
  await page.screenshot({path:shot('desktop')});
  const stored = await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('flutter.bodylog.v1'))));

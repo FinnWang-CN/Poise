@@ -112,13 +112,13 @@ class _FileImportPageState extends State<FileImportPage> {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 680),
           child: ListView(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
             children: [
               Align(
                 alignment: Alignment.centerLeft,
                 child: settingIcon(CupertinoIcons.doc_text, Color(0xFF4D7DD9)),
               ),
-              SizedBox(height: 18),
+              SizedBox(height: 12),
               sectionHeading('导入历史记录', '从 Fitdays 接回完整的身体数据。'),
               Text(
                 tr(
@@ -126,7 +126,7 @@ class _FileImportPageState extends State<FileImportPage> {
                   '支持 Fitdays 导出的 .xlsx 文件（最大 10 MB）。自动识别时间、体重和体脂率，保留表内其他字段。斤自动换算为 kg，不修改身高设置。\n\n请确认文件属于当前使用者，本版本不区分多个人的档案。',
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 14),
               OutlinedButton.icon(
                 onPressed: busy ? null : choose,
                 icon: Icon(Icons.folder_open),
@@ -189,17 +189,24 @@ class _FileImportPageState extends State<FileImportPage> {
                   child: Text(tr(context, '确认导入')),
                 ),
               ],
-              SizedBox(height: 20),
-              Text(
-                tr(context, '导入规则'),
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                tr(
-                  context,
-                  '• 追加到现有数据，不清空健康数据或手动记录。\n• 相同时间、体重、体脂的记录可更新其他字段；不同测量会保留，同一文件重复导入会跳过。\n• 日历仍只显示体重；点开记录查看原始全部字段，在趋势页选择其他数值指标。\n• 文字类字段只在详情显示。BMI 主图使用当前身高计算，也可选择“BMI（文件原值）”。\n• 文件在本机解析，不上传服务器；关闭预览不会导入数据。',
+              SizedBox(height: 14),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.only(bottom: 8),
+                shape: Border(),
+                collapsedShape: Border(),
+                title: Text(
+                  tr(context, '导入规则'),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
+                children: [
+                  Text(
+                    tr(
+                      context,
+                      '• 追加到现有数据，不清空健康数据或手动记录。\n• 相同时间、体重、体脂的记录可更新其他字段；不同测量会保留，同一文件重复导入会跳过。\n• 日历仍只显示体重；点开记录查看原始全部字段，在趋势页选择其他数值指标。\n• 文字类字段只在详情显示。BMI 主图使用当前身高计算，也可选择“BMI（文件原值）”。\n• 文件在本机解析，不上传服务器；关闭预览不会导入数据。',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

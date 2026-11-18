@@ -441,24 +441,25 @@ class FrostedTabs extends StatelessWidget {
   }
 }
 
-Widget sectionHeading(String title, String subtitle) =>
-    _SectionHeading(title, subtitle);
+Widget sectionHeading(String title, String subtitle, {bool compact = true}) =>
+    _SectionHeading(title, subtitle, compact: compact);
 
 class _SectionHeading extends StatelessWidget {
   final String title, subtitle;
-  const _SectionHeading(this.title, this.subtitle);
+  final bool compact;
+  const _SectionHeading(this.title, this.subtitle, {this.compact = false});
   @override
   Widget build(BuildContext context) {
     final p = paletteOf(context);
     return Padding(
-      padding: EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.only(bottom: compact ? 14 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             tr(context, title),
             style: TextStyle(
-              fontSize: 30,
+              fontSize: compact ? 25 : 30,
               fontWeight: FontWeight.w700,
               letterSpacing: -1,
               color: p.text,

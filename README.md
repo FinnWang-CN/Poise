@@ -1,5 +1,7 @@
 # Poise · 轻衡
 
+[Download Android APK / 下载安卓版](https://github.com/wang161113/Poise/releases/latest)
+
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
 Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app, without permission prompts. Turn this off under Settings → Health data.
@@ -7,6 +9,8 @@ Once connected, Health Connect / HealthKit sync automatically when opening or re
 Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smooth trend charts. Read-only Health Connect / HealthKit integration, local .xlsx import, JSON backup, light/dark/system appearance, and stable-height daily record cards are included.
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
+
+The compact interface keeps more content on screen. Language and appearance share one preferences card; detailed import rules and health-data explanations expand on demand.
 
 ## Screenshots / 界面预览
 
@@ -16,8 +20,11 @@ Screenshots use fictional demo data. 截图均为虚构演示数据。
 | --- | --- |
 | <img src="docs/screenshots/calendar.png" width="280" alt="中文体重日历与每日记录"> | <img src="docs/screenshots/calendar-en.png" width="280" alt="English body calendar and daily entries"> |
 | <img src="docs/screenshots/trend.png" width="280" alt="中文体重与体脂趋势"> | <img src="docs/screenshots/trend-en.png" width="280" alt="English weight and body fat trends"> |
+| <img src="docs/screenshots/settings.png" width="280" alt="中文紧凑个人设置"> | <img src="docs/screenshots/settings-en.png" width="280" alt="English compact settings"> |
 
 [中文深色模式](docs/screenshots/calendar-dark.png) · [English dark mode](docs/screenshots/settings-en-dark.png)
+
+[导入文件](docs/screenshots/file-import.png) · [Import file](docs/screenshots/file-import-en.png) · [记录编辑](docs/screenshots/editor.png) · [Entry editor](docs/screenshots/editor-en.png)
 
 ## 中文说明
 
@@ -25,10 +32,10 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 
 ## 已实现
 
-0.7.0：打开 App 自动同步已连接的 Health Connect / HealthKit；可在健康数据页关闭。英文名 **Poise**，支持中文 / English / 跟随系统语言，自动记忆；完整深浅色、稳定高度日历记录区与左右滑动切换。
+0.7.1：统一收紧日历、趋势、设置、导入与健康数据页的留白，详细说明按需展开，移除单位存储说明；打开 App 自动同步已连接的 Health Connect / HealthKit；可在健康数据页关闭。英文名 **Poise**，支持中文 / English / 跟随系统语言，自动记忆；完整深浅色、稳定高度日历记录区与左右滑动切换。
 
 - 月历显示每日最后一次体重，月份切换、回到今天、全天/早上/下午/晚上筛选。
-- 同日多次测量，手动新增、修改、删除，体脂选填与备注。
+- 同日多次测量，手动新增、修改、删除，体脂选填与备注；手动记录不能保存未来时间。
 - 体重、体脂率、BMI 折线图，近 7/30/90/365 天，目标体重线、区间变化和记录天数。
 - 公斤/斤显示切换，身高和目标设置；BMI 使用当前身高重新计算。
 - 本机持久化、带版本的 JSON 备份复制和粘贴导入；导入替换前确认。
@@ -90,14 +97,7 @@ python3 -m http.server 4173 --directory build/web
 
 Health Connect / HealthKit 接入方式、权限和安装步骤见 [健康数据说明](docs/HEALTH.md)。蓝牙秤直连、后台同步和云端同步尚未实现。详见 [实施计划](docs/PLAN.md)。
 
-
 ## 第三方组件
 
 `fl_chart`（MIT）、`shared_preferences` 与 Flutter（BSD 风格许可）；依赖许可应以锁定版本的 LICENSE 为准。
 本地字体是 Noto Sans CJK SC 的子集，采用 SIL Open Font License，完整声明见 [字体许可](assets/fonts/LICENSE.txt)。
-
-## 0.5.0 更新
-
-手动新增和编辑不能保存未来时间；设置 → 外观支持浅色、深色和跟随系统，选择会自动记住。更新应用内标识及 Android/iOS/Web 图标，趋势曲线使用轻度平滑，统计和提示仍采用原始数值。
-
-0.5.1：日历底部记录区统一高度，空日期及有无备注的记录切换不再改变日历位置。

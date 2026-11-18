@@ -519,7 +519,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       );
     },
   );
-  Widget panel(Widget child, {double padding = 18}) => Card(
+  Widget panel(Widget child, {double padding = 16}) => Card(
     margin: EdgeInsets.only(bottom: 14),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20),
@@ -528,7 +528,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     child: Padding(padding: EdgeInsets.all(padding), child: child),
   );
   Widget empty(String title, String subtitle) => Padding(
-    padding: EdgeInsets.symmetric(vertical: 30, horizontal: 12),
+    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
     child: Column(
       children: [
         Icon(
@@ -576,7 +576,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       children: [
                         if (compact)
                           Padding(
-                            padding: EdgeInsets.only(bottom: 14),
+                            padding: EdgeInsets.only(bottom: 10),
                             child: Text(
                               tr(context, '身体日历'),
                               style: TextStyle(
@@ -661,7 +661,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                 },
                                 onChanged: (p) => setState(() => period = p),
                               ),
-                              SizedBox(height: 14),
+                              SizedBox(height: 10),
                               Row(
                                 children:
                                     ['日', '一', '二', '三', '四', '五', '六']
@@ -1010,7 +1010,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
             ? 1.0
             : bounds.reduce(max) + (activeMetric == 0 ? 1 : 0.5);
     return ListView(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 96),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
         sectionHeading('变化趋势', '关注长期变化，也接纳日常波动。'),
         AppleSegments<int>(
@@ -1044,7 +1044,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   }),
             ),
           ),
-        SizedBox(height: 16),
+        SizedBox(height: 10),
         AppleSegments<int>(
           value: range,
           items: {
@@ -1052,7 +1052,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           },
           onChanged: (r) => setState(() => range = r),
         ),
-        SizedBox(height: 18),
+        SizedBox(height: 12),
         panel(
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1079,7 +1079,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                   Expanded(child: valueCell('${daily.length}', '记录天数')),
                 ],
               ),
-              SizedBox(height: 28),
+              SizedBox(height: 18),
               if (spots.isEmpty)
                 empty(
                   '这个区间还没有数据',
@@ -1210,7 +1210,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     ),
                   ),
                 ),
-              SizedBox(height: 16),
+              SizedBox(height: 10),
               Text(
                 tr(
                   context,
@@ -1279,71 +1279,99 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Padding(
-        padding: EdgeInsets.fromLTRB(15, 0, 0, 8),
+        padding: EdgeInsets.fromLTRB(14, 0, 0, 6),
         child: Text(
           tr(context, caption),
           style: TextStyle(fontSize: 12, color: paletteOf(context).secondary),
         ),
       ),
       Card(
-        margin: EdgeInsets.only(bottom: 22),
+        margin: EdgeInsets.only(bottom: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(color: paletteOf(context).line, width: .6),
         ),
-        child: Column(
-          children: [
-            for (var i = 0; i < rows.length; i++) ...[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-                child: rows[i],
-              ),
-              if (i < rows.length - 1)
+        child: ListTileTheme(
+          data: ListTileThemeData(
+            dense: true,
+            minTileHeight: 52,
+            minVerticalPadding: 8,
+            horizontalTitleGap: 12,
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < rows.length; i++) ...[
                 Padding(
-                  padding: EdgeInsets.only(left: 62),
-                  child: Divider(height: 1, thickness: .6),
+                  padding: EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                  child: rows[i],
                 ),
+                if (i < rows.length - 1)
+                  Padding(
+                    padding: EdgeInsets.only(left: 62),
+                    child: Divider(height: 1, thickness: .6),
+                  ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     ],
   );
   Widget settingsPage() => ListView(
-    padding: EdgeInsets.fromLTRB(20, 12, 20, 32),
+    padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
     children: [
-      sectionHeading('个人设置', '让记录更适合你的日常。'),
-      settingGroup('语言', [
+      sectionHeading('个人设置', '让记录更适合你的日常。', compact: true),
+      settingGroup('偏好设置', [
         Padding(
-          padding: EdgeInsets.all(14),
-          child: AppleSegments<AppLanguage>(
-            value: widget.language,
-            items: {
-              AppLanguage.zh: '中文',
-              AppLanguage.en: 'English',
-              AppLanguage.system: tr(context, '跟随系统'),
-            },
-            onChanged: (value) async {
-              final ok = await widget.onLanguageChanged?.call(value) ?? false;
-              if (!ok && mounted) message(tr(context, '语言设置保存失败，请重试'));
-            },
+          padding: EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 78,
+                child: Text(tr(context, '语言'), style: TextStyle(fontSize: 13)),
+              ),
+              Expanded(
+                child: AppleSegments<AppLanguage>(
+                  value: widget.language,
+                  items: {
+                    AppLanguage.zh: '中文',
+                    AppLanguage.en: 'English',
+                    AppLanguage.system: tr(context, '跟随系统'),
+                  },
+                  onChanged: (value) async {
+                    final ok =
+                        await widget.onLanguageChanged?.call(value) ?? false;
+                    if (!ok && mounted) message(tr(context, '语言设置保存失败，请重试'));
+                  },
+                ),
+              ),
+            ],
           ),
         ),
-      ]),
-      settingGroup('外观', [
         Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: AppleSegments<ThemeMode>(
-            value: widget.appearanceMode,
-            items: {
-              ThemeMode.light: '浅色',
-              ThemeMode.dark: '深色',
-              ThemeMode.system: '跟随系统',
-            },
-            onChanged: (value) async {
-              final ok = await widget.onAppearanceChanged?.call(value) ?? false;
-              if (!ok) message('外观设置保存失败，请重试');
-            },
+          padding: EdgeInsets.symmetric(vertical: 6),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 78,
+                child: Text(tr(context, '外观'), style: TextStyle(fontSize: 13)),
+              ),
+              Expanded(
+                child: AppleSegments<ThemeMode>(
+                  value: widget.appearanceMode,
+                  items: {
+                    ThemeMode.light: '浅色',
+                    ThemeMode.dark: '深色',
+                    ThemeMode.system: '跟随系统',
+                  },
+                  onChanged: (value) async {
+                    final ok =
+                        await widget.onAppearanceChanged?.call(value) ?? false;
+                    if (!ok) message('外观设置保存失败，请重试');
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ]),
@@ -1414,7 +1442,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(tr(context, '使用斤显示')),
-          subtitle: Text(tr(context, '内部统一以公斤保存')),
           value: data.jin,
           onChanged: saving ? null : (v) => save(data.copyWith(jin: v)),
         ),
@@ -1521,7 +1548,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.7.0 · 身体记录'),
+          tr(context, '轻衡 0.7.1 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),
@@ -1627,7 +1654,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                     : null;
                               },
                             ),
-                            SizedBox(height: 16),
+                            SizedBox(height: 12),
                             TextFormField(
                               controller: fat,
                               keyboardType: TextInputType.numberWithOptions(

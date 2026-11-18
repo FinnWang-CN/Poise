@@ -1,5 +1,6 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "偏好设置": "Preferences",
   "此操作无法撤销，并会关闭自动同步。建议先导出备份；身高和目标设置会保留，系统健康原始记录不会删除。":
       "This cannot be undone and turns off auto-sync. Export a backup first. Height and goal settings remain; original system health records are not deleted.",
   "授权后可在打开 App 时自动同步，不会修改系统健康记录。":
@@ -19,7 +20,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.7.0 · 身体记录": "Poise 0.7.0 · Body Journal",
+  "轻衡 0.7.1 · 身体记录": "Poise 0.7.1 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

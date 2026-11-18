@@ -237,7 +237,7 @@ class _HealthPageState extends State<HealthPage> {
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: 640),
           child: ListView(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
             children: [
               Align(
                 alignment: Alignment.centerLeft,
@@ -246,7 +246,7 @@ class _HealthPageState extends State<HealthPage> {
                   Color(0xFFDE6D85),
                 ),
               ),
-              SizedBox(height: 18),
+              SizedBox(height: 12),
               sectionHeading('连接健康数据', '让你的记录，在这里汇合。'),
               Text(
                 tr(
@@ -256,7 +256,7 @@ class _HealthPageState extends State<HealthPage> {
                       : '系统健康数据接入仅支持 Android / iOS 原生 App，网页预览不支持。',
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 14),
               if (service.supported) ...[
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
@@ -338,7 +338,7 @@ class _HealthPageState extends State<HealthPage> {
               ],
               SizedBox(height: 12),
               Text(tr(context, status)),
-              Divider(height: 32),
+              Divider(height: 24),
               Text(
                 tr(context, '已保存 ${data.healthSamples.length} 条系统健康数据'),
                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -348,16 +348,23 @@ class _HealthPageState extends State<HealthPage> {
                 child: Text(tr(context, '移除导入的本地副本')),
               ),
               SizedBox(height: 16),
-              Text(
-                tr(context, '数据使用说明'),
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              Text(
-                tr(
-                  context,
-                  '• 数据只保存在本机，不上传服务器、不用于广告。\n• 开启自动同步后，启动或回到 App 时读取上次选择的范围；可用上方开关关闭。\n• 只申请读取权限，不写入或删除系统记录。\n• 体脂可独立显示趋势；同一来源、相差不超过 5 分钟的体脂才会关联到体重卡片。\n• 重复同步按来源和原始 ID 更新。系统删除记录不会自动删除已导入副本，可使用上方按钮移除后重新导入。\n• 可在 Health Connect 或苹果健康的 App 权限设置中撤回授权。撤权不等于删除本地副本。\n• iOS 出于隐私不披露读取权限状态，空结果可能是无数据或未授权。\n• 导出备份会将健康数据写入剪贴板，请妥善保管。',
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: EdgeInsets.only(bottom: 8),
+                shape: Border(),
+                collapsedShape: Border(),
+                title: Text(
+                  tr(context, '数据使用说明'),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
+                children: [
+                  Text(
+                    tr(
+                      context,
+                      '• 数据只保存在本机，不上传服务器、不用于广告。\n• 开启自动同步后，启动或回到 App 时读取上次选择的范围；可用上方开关关闭。\n• 只申请读取权限，不写入或删除系统记录。\n• 体脂可独立显示趋势；同一来源、相差不超过 5 分钟的体脂才会关联到体重卡片。\n• 重复同步按来源和原始 ID 更新。系统删除记录不会自动删除已导入副本，可使用上方按钮移除后重新导入。\n• 可在 Health Connect 或苹果健康的 App 权限设置中撤回授权。撤权不等于删除本地副本。\n• iOS 出于隐私不披露读取权限状态，空结果可能是无数据或未授权。\n• 导出备份会将健康数据写入剪贴板，请妥善保管。',
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
