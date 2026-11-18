@@ -131,6 +131,12 @@ void main() {
         await tester.ensureVisible(find.text(confirm));
         await tester.tap(find.text(confirm));
         await tester.pumpAndSettle();
+        expect(
+          find.text(locale == 'zh' ? '导入成功' : 'Import successful'),
+          findsOneWidget,
+        );
+        await tester.tap(find.text(locale == 'zh' ? '完成' : 'Done'));
+        await tester.pumpAndSettle();
         expect(saved.keepSamples, hasLength(1));
         expect(saved.height, 168);
         expect(saved.records.single.id, 'manual');
@@ -139,6 +145,12 @@ void main() {
         await tester.pumpAndSettle();
         await tester.ensureVisible(find.text(confirm));
         await tester.tap(find.text(confirm));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(locale == 'zh' ? '导入成功' : 'Import successful'),
+          findsOneWidget,
+        );
+        await tester.tap(find.text(locale == 'zh' ? '完成' : 'Done'));
         await tester.pumpAndSettle();
         expect(saved.keepSamples, hasLength(1));
         final disconnect = find.text(locale == 'zh' ? '断开连接' : 'Disconnect');
@@ -151,6 +163,66 @@ void main() {
       },
     );
   }
+  testWidgets(
+    'preview sheet keeps confirmation visible, closes without saving and retries failed saves',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final api = FakeKeep();
+      var writes = 0;
+      bool succeed = false;
+      await tester.pumpWidget(
+        host(
+          KeepPage(
+            initial: BodyData(),
+            service: api,
+            onSave: (_) async {
+              writes++;
+              return succeed;
+            },
+          ),
+          'zh',
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('读取 Keep 数据'));
+      await tester.tap(find.text('读取 Keep 数据'));
+      await tester.pumpAndSettle();
+      final button = find.text('确认导入');
+      expect(tester.getRect(button).bottom, lessThan(640));
+      final before = tester.getRect(button);
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, -500),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getRect(button), before);
+      expect(writes, 0);
+      await tester.tap(find.byTooltip('关闭'));
+      await tester.pumpAndSettle();
+      expect(button, findsNothing);
+      expect(writes, 0);
+      await tester.ensureVisible(find.text('查看读取结果'));
+      await tester.tap(find.text('查看读取结果'));
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(writes, 1);
+      expect(button, findsOneWidget);
+      expect(find.text('保存失败，原有数据未改变，请重试。'), findsWidgets);
+      succeed = true;
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(writes, 2);
+      expect(find.text('导入成功'), findsOneWidget);
+      expect(find.text('1 天 Keep 数据已保存到 Poise。'), findsOneWidget);
+      await tester.tap(find.text('完成'));
+      await tester.pumpAndSettle();
+      expect(button, findsNothing);
+      expect(find.text('已保存 1 天 Keep 数据'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets('missing Keep stops before requesting authorization', (
     tester,
   ) async {

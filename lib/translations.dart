@@ -1,5 +1,9 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "完成": "Done",
+  "导入成功": "Import successful",
+  "{0} 天 Keep 数据已保存到 Poise。": "{0} days of Keep data saved to Poise.",
+  "查看读取结果": "View results",
   "未检测到 Keep，请先安装 Keep 并登录后重试。":
       "Keep was not found. Install Keep and sign in, then retry.",
   "无法唤起 Keep，请确认已安装最新版本后重试。":
@@ -114,7 +118,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.8.1 · 身体记录": "Poise 0.8.1 · Body Journal",
+  "轻衡 0.8.2 · 身体记录": "Poise 0.8.2 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

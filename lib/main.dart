@@ -1603,7 +1603,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.1 · 身体记录'),
+          tr(context, '轻衡 0.8.2 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),

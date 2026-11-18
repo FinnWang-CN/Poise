@@ -128,3 +128,12 @@
 - Keep 官方公开授权页面脚本确认采用 keep://webview/ 加编码 URL 的路由。Android / iOS 真机授权跳转仍待验证，iOS 未构建 IPA。
 
 - Android release 0.8.1/versionCode 13 与 Web release 构建通过；APK 沿用旧测试签名，ZIP 完整且无 XLSX。大小 69008393 字节，SHA-256 `9d565ea41b65a934f70bdcb47678093655c736321cefa67fd1b440467d75a6a2`。中英文深浅截图检查无运行错误。
+
+## 0.8.2 底部确认面板与正式官网
+
+- Keep 读取结果改为底部预览面板，确认按钮固定、内容独立滚动；关闭不保存，可重新打开结果。保存成功后显示结果天数提示，失败保留面板重试。
+- 新增 320×640 固定按钮、关闭取消、失败重试和成功提示的中英文回归；完整测试 68 项通过，静态检查无问题。
+- 官网统一为 https://poise.onepeak.cn/；设置 canonical、Open Graph 与 CNAME，停止维护原 chatgpt.site 下载站。
+- Keep 当前授权完成仅关闭其 webview，未提供第三方回跳回调；仍需用户手动返回 Poise。未宣称 Android / iOS 真机完整验收，iOS 未构建 IPA。
+
+- Android release 0.8.2/versionCode 16、Web release 构建通过；APK 旧证书验签和 ZIP 完整性通过，无 XLSX。大小 69057685 字节，SHA-256 `96ab328e5abf9c3c243dbe0a3fda7211b5a41fdb1dce6fa95692df6466f03131`。

@@ -26,11 +26,7 @@ class _KeepPageState extends State<KeepPage> {
   KeepCredentials? connection;
   KeepLogin? login;
   KeepImport? preview;
-  bool loading = true,
-      busy = false,
-      polling = false,
-      useHeight = false,
-      imported = false;
+  bool loading = true, busy = false, polling = false, imported = false;
   int days = 30, generation = 0;
   String status = '';
   @override
@@ -145,7 +141,6 @@ class _KeepPageState extends State<KeepPage> {
       busy = true;
       preview = null;
       imported = false;
-      useHeight = false;
       status = '正在读取 Keep 数据…';
     });
     try {
@@ -153,8 +148,10 @@ class _KeepPageState extends State<KeepPage> {
       if (mounted) {
         setState(() {
           preview = result;
+          busy = false;
           status = result.samples.isEmpty ? '未读到可导入的日期记录。' : '读取完成，请核对后导入。';
         });
+        await showPreview();
       }
     } catch (e) {
       if (mounted) setState(() => status = error(e));
@@ -163,9 +160,55 @@ class _KeepPageState extends State<KeepPage> {
     }
   }
 
-  Future<void> commit() async {
+  Future<void> showPreview() async {
     final result = preview;
-    if (result == null || imported) return;
+    if (result == null) return;
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      isDismissible: false,
+      enableDrag: false,
+      constraints: const BoxConstraints(maxWidth: 640),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      builder:
+          (_) => _KeepImportSheet(
+            result: result,
+            height: data.height,
+            onImport: (useHeight) => commit(result, useHeight),
+          ),
+    );
+    if (saved == true && mounted) {
+      await showDialog<void>(
+        context: context,
+        builder:
+            (dialogContext) => AlertDialog(
+              icon: Icon(
+                CupertinoIcons.check_mark_circled_solid,
+                color: paletteOf(context).accentColor,
+                size: 40,
+              ),
+              title: Text(tr(context, '导入成功')),
+              content: Text(
+                tr(context, '${result.samples.length} 天 Keep 数据已保存到 Poise。'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(tr(context, '完成')),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
+  Future<bool> commit(KeepImport result, bool useHeight) async {
+    if (imported) return false;
     setState(() => busy = true);
     final next = data.copyWith(
       keepSamples: mergeKeepSamples(data.keepSamples, result.samples),
@@ -189,6 +232,7 @@ class _KeepPageState extends State<KeepPage> {
     } finally {
       if (mounted) setState(() => busy = false);
     }
+    return imported;
   }
 
   Future<void> disconnect() async {
@@ -252,107 +296,6 @@ class _KeepPageState extends State<KeepPage> {
     }
   }
 
-  Widget resultCard(KeepImport result) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            tr(context, '读取结果'),
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            tr(
-              context,
-              '${result.samples.length} 天记录 · 体重 ${result.samples.where((s) => s.kg != null).length} 天 · 体脂 ${result.samples.where((s) => s.fat != null).length} 天',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            tr(
-              context,
-              'Keep 最新身高：${result.height?.toStringAsFixed(1) ?? '—'} cm',
-            ),
-          ),
-          Text(
-            tr(context, 'Keep BMI：${result.bmi?.toStringAsFixed(1) ?? '—'}'),
-          ),
-          Text(
-            tr(
-              context,
-              'BMI 按当前身高 ${(useHeight ? result.height! : data.height).toStringAsFixed(0)} cm 计算',
-            ),
-            style: TextStyle(fontSize: 12, color: paletteOf(context).secondary),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            tr(context, '身高和 Keep BMI 未提供记录日期，仅展示最新查询值，不作为历史测量。'),
-            style: TextStyle(fontSize: 12, color: paletteOf(context).secondary),
-          ),
-          if (result.height != null)
-            CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              value: useHeight,
-              onChanged:
-                  busy || imported
-                      ? null
-                      : (v) => setState(() => useHeight = v!),
-              title: Text(tr(context, '使用 Keep 身高更新身体档案')),
-              subtitle: Text(tr(context, '更新身高会重新计算历史 BMI。')),
-            ),
-          for (final row in result.samples.take(5))
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              dense: true,
-              title: Text(dateLabel(row.date)),
-              subtitle: Text(
-                [
-                  if (row.kg != null) '${row.kg!.toStringAsFixed(2)} kg',
-                  if (row.fat != null)
-                    '${tr(context, '体脂率')} ${row.fat!.toStringAsFixed(1)}%',
-                ].join(' · '),
-              ),
-            ),
-          if (result.samples.length > 5)
-            Text(
-              tr(context, '预览仅显示前 5 天，确认后导入全部已识别记录。'),
-              style: const TextStyle(fontSize: 12),
-            ),
-          for (final w in result.warnings)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                tr(context, w),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: paletteOf(context).secondary,
-                ),
-              ),
-            ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed:
-                  busy || imported || (result.samples.isEmpty && !useHeight)
-                      ? null
-                      : commit,
-              child: Text(tr(context, imported ? '已导入' : '确认导入')),
-            ),
-          ),
-          ExpansionTile(
-            tilePadding: EdgeInsets.zero,
-            title: Text(tr(context, '查看 Keep 返回内容')),
-            children: [
-              SelectableText(result.raw, style: const TextStyle(fontSize: 12)),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: !busy || (preview == null && login == null),
@@ -481,7 +424,11 @@ class _KeepPageState extends State<KeepPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           child: Text(tr(context, status)),
                         ),
-                      if (preview != null) resultCard(preview!),
+                      if (preview != null && !imported)
+                        TextButton(
+                          onPressed: busy ? null : showPreview,
+                          child: Text(tr(context, '查看读取结果')),
+                        ),
                       const SizedBox(height: 12),
                       Text(
                         tr(context, '已保存 ${data.keepSamples.length} 天 Keep 数据'),
@@ -511,4 +458,212 @@ class _KeepPageState extends State<KeepPage> {
               ),
     ),
   );
+}
+
+class _KeepImportSheet extends StatefulWidget {
+  final KeepImport result;
+  final double height;
+  final Future<bool> Function(bool useHeight) onImport;
+  const _KeepImportSheet({
+    required this.result,
+    required this.height,
+    required this.onImport,
+  });
+  @override
+  State<_KeepImportSheet> createState() => _KeepImportSheetState();
+}
+
+class _KeepImportSheetState extends State<_KeepImportSheet> {
+  bool useHeight = false, saving = false, failed = false;
+  Future<void> save() async {
+    setState(() {
+      saving = true;
+      failed = false;
+    });
+    bool ok = false;
+    try {
+      ok = await widget.onImport(useHeight);
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      saving = false;
+      failed = !ok;
+    });
+    if (ok) Navigator.of(context).pop(true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = widget.result;
+    return PopScope(
+      canPop: !saving,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * .88,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 8, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        tr(context, '读取结果'),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed:
+                          saving ? null : () => Navigator.of(context).pop(),
+                      tooltip: tr(context, '关闭'),
+                      icon: const Icon(CupertinoIcons.xmark_circle_fill),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tr(
+                          context,
+                          '${result.samples.length} 天记录 · 体重 ${result.samples.where((s) => s.kg != null).length} 天 · 体脂 ${result.samples.where((s) => s.fat != null).length} 天',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        tr(
+                          context,
+                          'Keep 最新身高：${result.height?.toStringAsFixed(1) ?? '—'} cm',
+                        ),
+                      ),
+                      Text(
+                        tr(
+                          context,
+                          'Keep BMI：${result.bmi?.toStringAsFixed(1) ?? '—'}',
+                        ),
+                      ),
+                      Text(
+                        tr(
+                          context,
+                          'BMI 按当前身高 ${(useHeight ? result.height! : widget.height).toStringAsFixed(0)} cm 计算',
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: paletteOf(context).secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        tr(context, '身高和 Keep BMI 未提供记录日期，仅展示最新查询值，不作为历史测量。'),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: paletteOf(context).secondary,
+                        ),
+                      ),
+                      if (result.height != null)
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: useHeight,
+                          onChanged:
+                              saving
+                                  ? null
+                                  : (v) => setState(() => useHeight = v!),
+                          title: Text(tr(context, '使用 Keep 身高更新身体档案')),
+                          subtitle: Text(tr(context, '更新身高会重新计算历史 BMI。')),
+                        ),
+                      for (final row in result.samples.take(5))
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                          title: Text(dateLabel(row.date)),
+                          subtitle: Text(
+                            [
+                              if (row.kg != null)
+                                '${row.kg!.toStringAsFixed(2)} kg',
+                              if (row.fat != null)
+                                '${tr(context, '体脂率')} ${row.fat!.toStringAsFixed(1)}%',
+                            ].join(' · '),
+                          ),
+                        ),
+                      if (result.samples.length > 5)
+                        Text(
+                          tr(context, '预览仅显示前 5 天，确认后导入全部已识别记录。'),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      for (final w in result.warnings)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            tr(context, w),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: paletteOf(context).secondary,
+                            ),
+                          ),
+                        ),
+                      ExpansionTile(
+                        tilePadding: EdgeInsets.zero,
+                        title: Text(tr(context, '查看 Keep 返回内容')),
+                        children: [
+                          SelectableText(
+                            result.raw,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (failed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          tr(context, '保存失败，原有数据未改变，请重试。'),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed:
+                            saving || (result.samples.isEmpty && !useHeight)
+                                ? null
+                                : save,
+                        child:
+                            saving
+                                ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : Text(tr(context, '确认导入')),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
