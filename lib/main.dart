@@ -1,3 +1,4 @@
+import 'comparison_page.dart';
 import 'support_author.dart';
 import 'keep_page.dart';
 import 'keep_icon.dart';
@@ -555,6 +556,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ],
     ),
   );
+  void openComparison() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ComparisonPage(data: data, initialDay: selected),
+      ),
+    );
+  }
+
   Widget calendarPage() {
     final records = data.onDay(selected, period).reversed.toList();
     final first = DateTime(month.year, month.month, 1);
@@ -579,20 +588,37 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (compact)
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              tr(context, '身体日历'),
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -.7,
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                                  compact
+                                      ? Padding(
+                                        padding: EdgeInsets.only(bottom: 10),
+                                        child: Text(
+                                          tr(context, '身体日历'),
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -.7,
+                                          ),
+                                        ),
+                                      )
+                                      : sectionHeading(
+                                        '身体日历',
+                                        '每一次记录，都是对自己的关照。',
+                                      ),
+                            ),
+                            IconButton(
+                              tooltip: tr(context, '数据对比'),
+                              onPressed: openComparison,
+                              icon: Icon(
+                                CupertinoIcons.arrow_right_arrow_left,
+                                size: 20,
                               ),
                             ),
-                          )
-                        else
-                          sectionHeading('身体日历', '每一次记录，都是对自己的关照。'),
+                          ],
+                        ),
                         panel(
                           Column(
                             children: [
@@ -1029,6 +1055,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     return ListView(
       padding: EdgeInsets.fromLTRB(20, 8, 20, 24),
       children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: openComparison,
+            icon: Icon(CupertinoIcons.arrow_right_arrow_left, size: 16),
+            label: Text(tr(context, '数据对比')),
+          ),
+        ),
         sectionHeading('变化趋势', '关注长期变化，也接纳日常波动。'),
         AppleSegments<int>(
           value: activeMetric < 3 ? activeMetric : null,
@@ -1619,7 +1653,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.4 · 身体记录'),
+          tr(context, '轻衡 0.8.5 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),

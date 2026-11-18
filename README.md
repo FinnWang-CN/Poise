@@ -6,6 +6,8 @@ Poise means balance and composure. A local-first Flutter body journal for Androi
 
 Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app. Keep is a separate read-only source: authorize once, read daily weight/body-fat values, review, and import. Keep authorization checks for the installed app and opens Keep directly, without a QR image. The entry uses official Keep artwork. Keep login uses device secure storage; no Keep auto-sync in this version. See [Keep connection](docs/KEEP.md).
 
+New in 0.8.5: Compare any two weight records from Calendar or Trends. Choose a date and a specific entry on each side, swap them, and view changes in weight, BMI, body fat and imported metrics. Missing or incompatible values have no calculated difference; percentage changes use percentage points.
+
 Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smooth trend charts. Read-only Health Connect / HealthKit integration, local .xlsx import, JSON backup, light/dark/system appearance, and stable-height daily record cards are included.
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
@@ -17,6 +19,8 @@ In 0.8.3, entry, profile and backup forms use compact keyboard-aware bottom shee
 Keep results open in a bottom sheet with a fixed confirmation button. Close without saving, reopen the preview, or confirm to save and see a success dialog. Keep authorization currently requires manually returning to Poise after confirming in Keep.
 
 The compact interface keeps more content on screen. Language and appearance share one preferences card; detailed import rules and health-data explanations expand on demand.
+
+0.8.5：可从日历或趋势页进入“数据对比”，按日期选择两条具体记录并交换左右顺序，对比体重、BMI、体脂及导入指标。缺失或单位不一致时不计算差值，百分比指标以百分点显示变化。
 
 ## Screenshots / 界面预览
 

@@ -1,5 +1,24 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "数据对比": "Compare records",
+  "基准记录": "Baseline",
+  "对比记录": "Comparison",
+  "选择基准记录": "Choose baseline",
+  "选择对比记录": "Choose comparison",
+  "选择记录": "Choose a record",
+  "点击更换": "Tap to change",
+  "交换记录": "Swap records",
+  "已用于另一组": "Selected on the other side",
+  "上一个有记录的日期": "Previous recorded date",
+  "下一个有记录的日期": "Next recorded date",
+  "文件导入": "File import",
+  "手动记录": "Manual entry",
+  "百分点": "pp",
+  "相隔 {0} 天": "{0} days apart",
+  "至少需要两条体重记录才能对比。": "At least two weight records are needed to compare.",
+  "差值 = 对比记录 − 基准记录。缺失或单位不同的指标不计算差值；增减不代表健康评价。BMI 优先使用原始值，否则按当前身高计算。":
+      "Change = comparison minus baseline. No change is calculated for missing values or incompatible units. Increases and decreases are not health ratings. BMI uses the original value when available, otherwise your current height.",
+
   "支持 Poise": "Support Poise",
   "赞赏作者": "Support the author",
   "感谢你的支持": "Thank you for your support",
@@ -127,7 +146,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.8.4 · 身体记录": "Poise 0.8.4 · Body Journal",
+  "轻衡 0.8.5 · 身体记录": "Poise 0.8.5 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",
