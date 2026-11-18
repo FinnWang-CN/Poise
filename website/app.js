@@ -12,7 +12,7 @@ function updateThemeControls(){
  const button=document.getElementById('themeToggle');
  const label=lang==='zh'?(mode==='dark'?'切换到浅色':'切换到深色'):(mode==='dark'?'Switch to light mode':'Switch to dark mode');
  button.setAttribute('aria-label',label);button.title=label;button.setAttribute('aria-pressed',String(mode==='dark'));
- button.firstElementChild.textContent=mode==='dark'?'☀':'☾';
+ button.firstElementChild.innerHTML=mode==='dark'?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>':'<svg viewBox="0 0 24 24"><path d="M21 13a9 9 0 0 1-10-10A9 9 0 1 0 21 13Z"/></svg>';
  document.querySelectorAll('[data-mode]').forEach(b=>{const active=b.dataset.mode===mode;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
 }
 function setTheme(next,persist=true){mode=next;if(persist){try{localStorage.setItem('poise-site-theme',mode);}catch{}}render();}
