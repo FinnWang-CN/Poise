@@ -1,5 +1,14 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "未检测到 Keep，请先安装 Keep 并登录后重试。":
+      "Keep was not found. Install Keep and sign in, then retry.",
+  "无法唤起 Keep，请确认已安装最新版本后重试。":
+      "Could not open Keep. Check that the latest Keep app is installed, then retry.",
+  "Keep 授权链接无效，请重新连接。": "Invalid Keep authorization link. Please reconnect.",
+  "请在 Keep 中确认授权，然后返回 Poise。":
+      "Confirm authorization in Keep, then return to Poise.",
+  "Keep 授权已超时，请重新连接。": "Keep authorization timed out. Please reconnect.",
+  "重新打开 Keep": "Reopen Keep",
   "设备安全存储不可用，请检查系统后重试。":
       "Device secure storage is unavailable. Check your system and retry.",
   "Keep 身体记录": "Keep body journal",
@@ -14,10 +23,7 @@ const translations = <String, String>{
       "The Keep response format has changed. Try again later.",
   "Keep 请求失败或授权已失效，请重新连接后重试。":
       "The Keep request failed or access expired. Reconnect and try again.",
-  "无法获取 Keep 授权二维码，请重试。":
-      "Could not get a Keep authorization code. Please retry.",
-  "Keep 二维码已过期或授权失败，请重新获取。":
-      "The Keep code expired or authorization failed. Request a new code.",
+  "无法获取 Keep 授权会话，请重试。": "Could not start Keep authorization. Please retry.",
   "读取范围无效。": "Invalid date range.",
   "已跳过无效或超出读取范围的 Keep 数据。": "Skipped invalid or out-of-range Keep data.",
   "未识别体脂率明细，请检查 Keep 返回内容。":
@@ -29,12 +35,8 @@ const translations = <String, String>{
   "连接 Keep 失败，请检查网络后重试。":
       "Could not connect to Keep. Check your network and retry.",
   "正在连接 Keep…": "Connecting to Keep…",
-  "请用 Keep 扫码或打开授权页面，正在等待确认。":
-      "Scan with Keep or open the authorization page. Waiting for confirmation.",
   "Keep 连接成功。": "Connected to Keep.",
   "已取消 Keep 连接。": "Keep connection cancelled.",
-  "无法打开授权页面，请使用另一台设备扫描二维码。":
-      "Could not open the authorization page. Scan the code with another device.",
   "正在读取 Keep 数据…": "Reading Keep data…",
   "未读到可导入的日期记录。": "No dated entries available to import.",
   "读取完成，请核对后导入。": "Ready. Review the results before importing.",
@@ -67,11 +69,6 @@ const translations = <String, String>{
   "已连接 Keep": "Connected to Keep",
   "断开连接": "Disconnect",
   "授权连接 Keep": "Authorize Keep",
-  "二维码加载失败，可使用下方授权链接。":
-      "The code could not load. Use the authorization link below.",
-  "请用 Keep 扫码，或在本机打开授权页面完成确认。":
-      "Scan with Keep, or open the authorization page on this device to confirm.",
-  "打开 Keep 授权页面": "Open Keep authorization",
   "取消连接": "Cancel connection",
   "读取 Keep 数据": "Read Keep data",
   "重新授权": "Authorize again",
@@ -117,7 +114,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.8.0 · 身体记录": "Poise 0.8.0 · Body Journal",
+  "轻衡 0.8.1 · 身体记录": "Poise 0.8.1 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

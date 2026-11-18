@@ -119,3 +119,12 @@
 
 - Android release 0.8.0/versionCode 12 构建通过，旧证书验签通过；APK ZIP 完整且不含 XLSX。大小 69017252 字节，SHA-256 `e8bf6cff21f18a1b708348a546c25e1fc5b4175e5bc9c8c5c2dba12181dad536`。
 - Web release 构建通过；中英文、深浅色截图预览无运行错误。新增 Keep 连接尚未在 Android / iOS 真机验收；iOS 未构建 IPA。
+
+## 0.8.1 Keep 本机授权与官方图标
+
+- Keep 连接先检测本机安装状态，直接打开官方授权 webview，不渲染或请求二维码图片。Android 仅查询并显式指定 Keep 包；iOS 配置 keep 查询 scheme。
+- 使用 Keep 官方应用商店图标，来源记录在 assets/integrations/README.md。
+- 静态检查无问题；全量 67 项测试通过。新增检测缺失时不创建会话、直接唤起和重新打开、唤起失败不接受登录、授权链接严格校验与通道参数验证。旧版取消授权和数据导入回归继续通过。
+- Keep 官方公开授权页面脚本确认采用 keep://webview/ 加编码 URL 的路由。Android / iOS 真机授权跳转仍待验证，iOS 未构建 IPA。
+
+- Android release 0.8.1/versionCode 13 与 Web release 构建通过；APK 沿用旧测试签名，ZIP 完整且无 XLSX。大小 69008393 字节，SHA-256 `9d565ea41b65a934f70bdcb47678093655c736321cefa67fd1b440467d75a6a2`。中英文深浅截图检查无运行错误。

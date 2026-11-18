@@ -4,11 +4,17 @@ Poise 0.8.0 adds a separate, optional read-only Keep connection through Keep's M
 
 ## 使用
 
-1. 更新到 0.8.0，打开设置 → 数据来源 → Keep 身体记录。
-2. 点击“授权连接 Keep”。用 Keep 扫码，或点击“打开 Keep 授权页面”在同一台设备完成授权。返回 Poise 后会继续检查授权状态；二维码约 5 分钟有效。
-3. 授权后读取并预览结果。后续会从设备安全存储恢复登录，不需要每次扫码；Keep 撤销或登录过期后需重新授权。
+1. 更新到 0.8.1，打开设置 → 数据来源 → Keep 身体记录。
+2. 点击“授权连接 Keep”。Poise 先检测本机是否安装 Keep，已安装就直接打开 Keep 内的授权页面，不展示二维码。确认后返回 Poise；授权会话约 5 分钟有效。未安装时提示先安装并登录 Keep，唤起失败时可更新 Keep 后重试。
+3. 授权后读取并预览结果。后续会从设备安全存储恢复登录，不需要每次授权；Keep 撤销或登录过期后需重新授权。
 4. 可选择近 7 / 30 / 90 / 365 天，读取体重、体脂率和最新身高、BMI。先核对预览及“Keep 返回内容”，再点击确认导入。
 5. 身高默认不覆盖身体档案；勾选“使用 Keep 身高更新身体档案”后才更新，并影响历史 BMI 计算。
+
+## Connect on this device
+
+In 0.8.1, Settings → Keep body journal → Authorize Keep checks for the installed Keep app and opens its authorization page directly. No QR image is displayed. Confirm in Keep, then return to Poise. If Keep is missing, install it and sign in first; if handoff fails, update Keep and retry. You can reopen Keep while authorization is pending. The official app artwork identifies this integration.
+
+The route follows Keep’s own public authorization page: `keep://webview/<percent-encoded HTTPS authorization URL>?isExternalLaunch=1`. Android checks and explicitly targets `com.gotokeep.keep`; iOS queries the `keep` URL scheme. Only `https://show.gotokeep.com/login/auth` is accepted as a handoff target. Reference: [Keep authorization page](https://show.gotokeep.com/login/auth) and its published `loginAuth-460974dea6.js` script, checked 2026-11-18. Installation detection uses platform app visibility, not broad package access. The gateway still issues its login session through `get_qrcode`, but the QR image is never fetched or rendered by Poise.
 
 ## 数据精度与限制
 
@@ -35,4 +41,4 @@ Poise 0.8.0 adds a separate, optional read-only Keep connection through Keep's M
 
 Synthetic tests cover daily parsing, unsupported formats, conflicting values, invalid ranges, same-account/day updates, multiple accounts, date precision and source precedence, fat-only trends, old/new backup versions, MCP SSE session headers, read-only tool calls, expired credentials, URL validation, explicit preview/commit, optional height update, cancelled authorization, failure preservation, bilingual UI, and small-screen calendar stability.
 
-Public endpoint metadata and the daily line format were verified against the live service during development. Personal account responses were used only for private verification and are not included in source, tests, website screenshots or published artifacts. QR return-to-app behavior and encrypted storage still need real-device acceptance. iOS source is configured; this Linux workspace does not produce an IPA.
+Public endpoint metadata and the daily line format were verified against the live service during development. Personal account responses were used only for private verification and are not included in source, tests, website screenshots or published artifacts. Native app handoff / return-to-app behavior and encrypted storage still need real-device acceptance. iOS source is configured; this Linux workspace does not produce an IPA.

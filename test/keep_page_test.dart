@@ -17,7 +17,8 @@ class FakeKeep extends KeepService {
     username: 'Example',
   );
   bool support = true, fail = false;
-  int accepted = 0, reads = 0;
+  int accepted = 0, reads = 0, starts = 0, opens = 0;
+  bool installed = true, launchSucceeds = true;
   Completer<KeepCredentials?>? pending;
   @override
   bool get supported => support;
@@ -26,11 +27,23 @@ class FakeKeep extends KeepService {
   @override
   Future<KeepCredentials?> restore() async => c;
   @override
-  Future<KeepLogin> startLogin() async => KeepLogin(
-    'qr',
-    Uri.parse('https://api.gotokeep.com/image/fixture'),
-    Uri.parse('https://show.gotokeep.com/auth'),
-  );
+  Future<KeepLogin> startLogin() async {
+    starts++;
+    return KeepLogin(
+      'qr',
+      Uri.parse('https://api.gotokeep.com/image/fixture'),
+      Uri.parse('https://show.gotokeep.com/login/auth?qrcodeId=fixture'),
+    );
+  }
+
+  @override
+  Future<bool> isAppInstalled() async => installed;
+  @override
+  Future<bool> openAuthorization(KeepLogin login) async {
+    opens++;
+    return launchSucceeds;
+  }
+
   @override
   Future<KeepCredentials?> checkLogin(KeepLogin login) async =>
       pending == null ? c : pending!.future;
@@ -138,6 +151,93 @@ void main() {
       },
     );
   }
+  testWidgets('missing Keep stops before requesting authorization', (
+    tester,
+  ) async {
+    final api =
+        FakeKeep()
+          ..c = null
+          ..installed = false;
+    await tester.pumpWidget(
+      host(
+        KeepPage(initial: BodyData(), service: api, onSave: (_) async => true),
+        'zh',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('授权连接 Keep'));
+    await tester.pumpAndSettle();
+    expect(api.starts, 0);
+    expect(api.opens, 0);
+    expect(find.text('未检测到 Keep，请先安装 Keep 并登录后重试。'), findsOneWidget);
+  });
+  testWidgets(
+    'installed Keep launches immediately without QR and supports retry',
+    (tester) async {
+      final api =
+          FakeKeep()
+            ..c = null
+            ..pending = Completer<KeepCredentials?>();
+      await tester.pumpWidget(
+        host(
+          KeepPage(
+            initial: BodyData(),
+            service: api,
+            onSave: (_) async => true,
+          ),
+          'en',
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Authorize Keep'));
+      await tester.pumpAndSettle();
+      expect(api.starts, 1);
+      expect(api.opens, 1);
+      expect(
+        find.text('Confirm authorization in Keep, then return to Poise.'),
+        findsWidgets,
+      );
+      expect(
+        tester
+            .widgetList<Image>(find.byType(Image))
+            .every((i) => i.image is AssetImage),
+        isTrue,
+      );
+      await tester.tap(find.text('Reopen Keep'));
+      await tester.pumpAndSettle();
+      expect(api.opens, 2);
+      api.pending!.complete(
+        const KeepCredentials(
+          token: 'fixture',
+          userId: 'fixture',
+          username: 'Example',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(api.accepted, 1);
+      expect(api.reads, 1);
+      expect(find.text('Confirm import'), findsOneWidget);
+    },
+  );
+  testWidgets('failed handoff does not poll or accept login', (tester) async {
+    final api =
+        FakeKeep()
+          ..c = null
+          ..launchSucceeds = false;
+    await tester.pumpWidget(
+      host(
+        KeepPage(initial: BodyData(), service: api, onSave: (_) async => true),
+        'zh',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('授权连接 Keep'));
+    await tester.pumpAndSettle();
+    expect(api.opens, 1);
+    expect(api.accepted, 0);
+    expect(api.reads, 0);
+    expect(find.text('无法唤起 Keep，请确认已安装最新版本后重试。'), findsOneWidget);
+  });
   testWidgets(
     'cancelling pending authorization does not save the late login result',
     (tester) async {

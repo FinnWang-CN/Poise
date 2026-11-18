@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'design.dart';
 import 'language.dart';
 import 'keep_service.dart';
 import 'model.dart';
+import 'keep_icon.dart';
 
 class KeepPage extends StatefulWidget {
   final BodyData initial;
@@ -65,13 +65,21 @@ class _KeepPageState extends State<KeepPage> {
       status = '正在连接 Keep…';
     });
     try {
+      if (!await api.isAppInstalled()) {
+        throw const KeepException('未检测到 Keep，请先安装 Keep 并登录后重试。');
+      }
+      if (!mounted || run != generation) return;
       final qr = await api.startLogin();
+      if (!mounted || run != generation) return;
+      if (!await api.openAuthorization(qr)) {
+        throw const KeepException('无法唤起 Keep，请确认已安装最新版本后重试。');
+      }
       if (!mounted || run != generation) return;
       setState(() {
         login = qr;
         busy = false;
         polling = true;
-        status = '请用 Keep 扫码或打开授权页面，正在等待确认。';
+        status = '请在 Keep 中确认授权，然后返回 Poise。';
       });
       final deadline = DateTime.now().add(const Duration(minutes: 5));
       while (mounted &&
@@ -96,7 +104,7 @@ class _KeepPageState extends State<KeepPage> {
         await Future<void>.delayed(const Duration(seconds: 3));
       }
       if (mounted && run == generation) {
-        setState(() => status = 'Keep 二维码已过期或授权失败，请重新获取。');
+        setState(() => status = 'Keep 授权已超时，请重新连接。');
       }
     } catch (e) {
       if (mounted && run == generation) setState(() => status = error(e));
@@ -124,8 +132,8 @@ class _KeepPageState extends State<KeepPage> {
     final uri = login?.redirect;
     if (uri == null) return;
     try {
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        throw const KeepException('无法打开授权页面，请使用另一台设备扫描二维码。');
+      if (!await api.openAuthorization(login!)) {
+        throw const KeepException('无法唤起 Keep，请确认已安装最新版本后重试。');
       }
     } catch (e) {
       if (mounted) setState(() => status = error(e));
@@ -361,10 +369,7 @@ class _KeepPageState extends State<KeepPage> {
                     children: [
                       Align(
                         alignment: Alignment.centerLeft,
-                        child: settingIcon(
-                          CupertinoIcons.link,
-                          const Color(0xff1D8276),
-                        ),
+                        child: const KeepIcon(),
                       ),
                       const SizedBox(height: 12),
                       sectionHeading('Keep 身体记录', '连接已有数据，接着记录变化。'),
@@ -415,24 +420,14 @@ class _KeepPageState extends State<KeepPage> {
                               padding: const EdgeInsets.all(16),
                               child: Column(
                                 children: [
-                                  Image.network(
-                                    login!.image.toString(),
-                                    height: 190,
-                                    width: 190,
-                                    fit: BoxFit.contain,
-                                    errorBuilder:
-                                        (c, e, s) => Text(
-                                          tr(context, '二维码加载失败，可使用下方授权链接。'),
-                                        ),
-                                  ),
-                                  const SizedBox(height: 12),
                                   Text(
-                                    tr(context, '请用 Keep 扫码，或在本机打开授权页面完成确认。'),
+                                    tr(context, '请在 Keep 中确认授权，然后返回 Poise。'),
                                   ),
                                   const SizedBox(height: 10),
                                   OutlinedButton(
-                                    onPressed: busy ? null : openAuth,
-                                    child: Text(tr(context, '打开 Keep 授权页面')),
+                                    onPressed:
+                                        busy || !polling ? null : openAuth,
+                                    child: Text(tr(context, '重新打开 Keep')),
                                   ),
                                   TextButton(
                                     onPressed: busy ? null : cancelLogin,

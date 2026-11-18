@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'model.dart';
@@ -75,6 +76,22 @@ class KeepLogin {
 bool keepUrlAllowed(Uri u) =>
     u.scheme == 'https' &&
     (u.host == 'gotokeep.com' || u.host.endsWith('.gotokeep.com'));
+
+// Keep's official login page uses keep://webview/<encoded HTTPS URL>.
+// Hand off only that authorization route; never accept arbitrary app links.
+Uri keepAuthorizationLink(Uri redirect) {
+  if (redirect.scheme != 'https' ||
+      redirect.host != 'show.gotokeep.com' ||
+      redirect.path != '/login/auth' ||
+      redirect.userInfo.isNotEmpty ||
+      redirect.hasPort ||
+      redirect.fragment.isNotEmpty) {
+    throw const KeepException('Keep 授权链接无效，请重新连接。');
+  }
+  return Uri.parse(
+    'keep://webview/${Uri.encodeComponent(redirect.toString())}?isExternalLaunch=1',
+  );
+}
 
 class KeepImport {
   final List<KeepSample> samples;
@@ -210,6 +227,14 @@ class KeepService {
         TargetPlatform.android,
         TargetPlatform.iOS,
       ].contains(defaultTargetPlatform);
+  static const appChannel = MethodChannel('com.qingheng.bodylog/keep');
+  Future<bool> isAppInstalled() async =>
+      await appChannel.invokeMethod<bool>('isInstalled') ?? false;
+  Future<bool> openAuthorization(KeepLogin login) async =>
+      await appChannel.invokeMethod<bool>('openAuthorization', {
+        'url': keepAuthorizationLink(login.redirect).toString(),
+      }) ??
+      false;
   KeepCredentials? get credentials => _credentials;
   Future<KeepCredentials?> restore() async {
     String? text;
@@ -306,7 +331,7 @@ class KeepService {
     await _wire('initialize', {
       'protocolVersion': '2025-03-26',
       'capabilities': {},
-      'clientInfo': {'name': 'Poise', 'version': '0.8.0'},
+      'clientInfo': {'name': 'Poise', 'version': '0.8.1'},
     });
     await _wire('notifications/initialized', null, notification: true);
     _ready = true;
@@ -354,7 +379,7 @@ class KeepService {
         redirect == null ||
         !keepUrlAllowed(image) ||
         !keepUrlAllowed(redirect)) {
-      throw const KeepException('无法获取 Keep 授权二维码，请重试。');
+      throw const KeepException('无法获取 Keep 授权会话，请重试。');
     }
     return KeepLogin(id, image, redirect);
   }
@@ -368,7 +393,7 @@ class KeepService {
         token is! String ||
         user is! Map ||
         user['id'] == null) {
-      throw const KeepException('Keep 二维码已过期或授权失败，请重新获取。');
+      throw const KeepException('Keep 授权已超时，请重新连接。');
     }
     DateTime? expires;
     try {

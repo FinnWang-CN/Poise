@@ -1,4 +1,5 @@
 import 'keep_page.dart';
+import 'keep_icon.dart';
 import 'health_service.dart';
 import 'health_sync.dart';
 import 'language.dart';
@@ -1446,7 +1447,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ),
         ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: settingIcon(CupertinoIcons.link, Color(0xFF1D8276)),
+          leading: const KeepIcon(),
           title: Text(tr(context, 'Keep 身体记录')),
           subtitle: Text(tr(context, '授权读取体重、体脂与身体档案')),
           trailing: Icon(
@@ -1602,7 +1603,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.0 · 身体记录'),
+          tr(context, '轻衡 0.8.1 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),

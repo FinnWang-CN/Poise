@@ -4,7 +4,7 @@
 
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
-Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app. Keep is a separate read-only source: authorize once, read daily weight/body-fat values, review, and import. Keep login uses device secure storage; no Keep auto-sync in this version. See [Keep connection](docs/KEEP.md).
+Once connected, Health Connect / HealthKit sync automatically when opening or returning to the app. Keep is a separate read-only source: authorize once, read daily weight/body-fat values, review, and import. Keep authorization checks for the installed app and opens Keep directly, without a QR image. The entry uses official Keep artwork. Keep login uses device secure storage; no Keep auto-sync in this version. See [Keep connection](docs/KEEP.md).
 
 Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smooth trend charts. Read-only Health Connect / HealthKit integration, local .xlsx import, JSON backup, light/dark/system appearance, and stable-height daily record cards are included.
 
@@ -32,7 +32,7 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 
 ## 已实现
 
-0.8.0：新增 **Keep 身体记录**，支持 App 内授权、设备安全保存登录、读取并预览日期级体重/体脂，确认后进入日历和趋势。最新身高可选导入，Keep BMI 单独展示；详见 [Keep 接入说明](docs/KEEP.md)。
+0.8.1：Keep 授权先检测本机安装并直接唤起 Keep，不再展示二维码；入口使用官方图标。**Keep 身体记录**，支持 App 内授权、设备安全保存登录、读取并预览日期级体重/体脂，确认后进入日历和趋势。最新身高可选导入，Keep BMI 单独展示；详见 [Keep 接入说明](docs/KEEP.md)。
 
 - 月历显示每日最后一次体重，月份切换、回到今天、全天/早上/下午/晚上筛选。
 - 同日多次测量，手动新增、修改、删除，体脂选填与备注；手动记录不能保存未来时间。
@@ -90,7 +90,7 @@ python3 -m http.server 4173 --directory build/web
 ## 验证情况
 
 - `flutter analyze`：无问题。
-- `flutter test`：63 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
+- `flutter test`：67 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
 - Web release 构建通过；Chromium 手机尺寸页面检查，截图为明确标注的演示数据。
 - Android release APK 构建与签名检查见交付验证记录；未进行模拟器、真机读取验证。iOS 已配置接入，Linux 环境未构建 IPA。
 
@@ -101,6 +101,7 @@ Health Connect / HealthKit 接入方式、权限和安装步骤见 [健康数据
 ## 第三方组件
 
 `fl_chart`（MIT）、`shared_preferences` 与 Flutter（BSD 风格许可）；依赖许可应以锁定版本的 LICENSE 为准。
+Keep 官方图标仅用于标识接入来源，品牌权利归其所有者；来源见 [图标说明](assets/integrations/README.md)。
 本地字体是 Noto Sans CJK SC 的子集，采用 SIL Open Font License，完整声明见 [字体许可](assets/fonts/LICENSE.txt)。
 
 ## Website / 软件站点
