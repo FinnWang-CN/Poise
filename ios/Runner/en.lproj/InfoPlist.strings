@@ -1,0 +1,3 @@
+"CFBundleDisplayName" = "Poise";
+"NSHealthShareUsageDescription" = "Poise reads weight, body fat and optional height you authorize for local calendars, trends and BMI. Data is not uploaded.";
+"NSHealthUpdateUsageDescription" = "Poise imports health records only. It does not write or delete Apple Health data.";

@@ -1,0 +1,52 @@
+# 系统健康数据接入与安装
+
+版本 0.2.0，Android Health Connect / iOS HealthKit，通过锁定版本 `health: 13.1.3` 接入。
+
+## Android 使用
+
+1. 将交付的 APK 保存到 Android 手机并安装；这是使用测试证书签名的 release 测试包，不是商店正式发行包。
+2. Android 14 及以上通常在系统设置中提供 Health Connect；Android 9–13 需安装或更新 Health Connect。部分设备/地区可能无法使用该服务。App 本身支持 Android 8+，健康连接要求 Android 9+。
+3. 确认体脂秤或其他健康 App 已将体重/体脂数据写入 Health Connect。
+4. 轻衡 → 设置 → 健康数据 → 选择最近 7 或 30 天 → 授权并读取。
+5. 只请求体重、体脂读取权限。身高默认不读取，选中后才额外申请，导入确认时显示将使用的最新身高。
+6. 在摘要中确认导入，回到日历或趋势查看。只有体脂、没有体重的记录可以在体脂趋势页独立显示。
+
+## iOS
+
+已加入 HealthKit entitlement、读取用途说明、CocoaPods 配置和 iOS 14 最低版本。
+需要在 macOS 上运行 `flutter pub get`、`cd ios && pod install`，打开 Runner.xcworkspace，选择拥有 HealthKit 权限的 Apple 开发者签名团队和正确的 Bundle ID 后构建。当前 Linux 环境无法构建/安装 IPA，未验证 iPhone 真机。
+
+权限申请只使用 READ。iOS 不披露读取授权状态，授权弹窗正常结束不代表所有数据都已授权；界面提示空数据可能是无记录或未授权。
+
+## 数据、单位与同步规则
+
+- 系统原始样本按平台、来源、数据类型和原始 UUID 保存，重复同步按键更新，保留手动记录。
+- 如果来源没有提供 UUID，使用测量时间与数值构成稳定回退 ID；此时来源修改数值可能产生新的样本。
+- 体重单位 kg；身高由米转 cm；HealthKit 体脂 0–1 转为 0–100，Health Connect 原本为百分数，不重复乘 100。
+- 独立体脂样本不强行配给无关体重。只有同平台、同来源、时间相差不超过 5 分钟才关联到体重卡片。
+- 趋势按各指标当天最后一次测量显示。系统体重记录为只读，请在来源 App 修改后重新导入。
+- 增量导入是追加/更新，不会自动映射系统记录删除。权限撤回与查询空结果无法可靠等同于删除，因此不自动清空本地历史。
+- 健康数据页可移除全部系统数据的本地副本，再按需重新导入；不会删除系统原始数据或手动记录。已经导入的身高设置会保留。
+- 手动触发前台读取，不后台读取、不向系统写入、不向服务器上传。备份导出包含健康数据，进入剪贴板前需由用户主动操作。
+- Android 不申请额外历史权限，最多选择最近 30 天。HealthKit 可选择 7/30/90/365 天。
+- 备份升级到 version 2，保留旧版 version 1 读取兼容；本地存储键保持原值，老数据自动迁移。
+
+## Android 构建
+
+验证工具链：Flutter 3.29.3，Dart 3.7.2，JDK 21（含 javac），Android SDK 35、Build Tools 34/35、NDK 27.0.12077973。
+
+首次本地构建需要创建测试签名（密钥不包含在源码包中）：
+
+```sh
+keytool -genkeypair -keystore android/testing.keystore -storepass android \
+  -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 \
+  -validity 10000 -dname 'CN=Qingheng Test Build,O=Development,C=CN'
+flutter pub get
+flutter build apk --release
+```
+
+产物：`build/app/outputs/flutter-apk/app-release.apk`。项目当前 release 使用该测试签名；正式发行前需配置自己的发布密钥与商店隐私/健康权限声明。更新已安装包需继续使用相同签名，本工作区保留本轮测试密钥。
+
+## 验证边界
+
+自动化测试验证接入适配层、单位换算、权限分支、导入流程和本地数据规则；使用伪造的健康提供者，不代表已通过真实手机授权与数据读取验证。必须在目标 Android / iPhone 上完成最终验收。

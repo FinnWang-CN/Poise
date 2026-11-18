@@ -1,0 +1,30 @@
+const {chromium} = require('playwright');
+const path = require('path');
+(async () => {
+ const browser = await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ const page = await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
+ const theme=process.env.THEME_MODE || 'light';
+ const lang=process.env.APP_LANGUAGE || 'zh';
+ const shot=(name)=>path.join(__dirname,'../docs/screenshots/'+name+(lang==='en'?'-en':'')+(theme==='dark'?'-dark':'')+'.png');
+ const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+ const now=new Date();const records=Array.from({length:45},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-44+i,7,20);return {id:`demo-${i}`,time:d.toISOString(),kg:73-i*.075+Math.sin(i*.8)*.3,fat:24-i*.045+Math.sin(i)*.15,note:lang==='en'?'Demo data · Not real measurements':'演示数据 · 非真实测量'};});
+ const last=records[records.length-1];const later=new Date(last.time);later.setHours(9,20);records.push({...last,id:'demo-second',time:later.toISOString(),kg:last.kg+.2,fat:last.fat+.1,note:lang==='en'?'Demo data · Second measurement':'演示数据 · 第二次测量'});
+ await page.addInitScript(({records})=>localStorage.setItem('flutter.bodylog.v1',JSON.stringify(JSON.stringify({version:1,heightCm:170,goalKg:68,unit:'kg',records}))),{records});
+ await page.addInitScript((theme)=>localStorage.setItem('flutter.bodylog.appearance',JSON.stringify(theme)),theme);
+ await page.addInitScript((lang)=>localStorage.setItem('flutter.bodylog.language',JSON.stringify(lang)),lang);
+ await page.goto(process.env.PREVIEW_URL || 'http://127.0.0.1:4173');
+ await page.locator('flutter-view').waitFor();
+ await page.waitForTimeout(4000);
+ await page.screenshot({path:shot('calendar')});
+ // Bottom navigation is in a fixed 80px bar on the observed 390x844 layout.
+ await page.mouse.click(195,812); await page.waitForTimeout(700);
+ await page.screenshot({path:shot('trend')});
+ await page.mouse.click(325,812); await page.waitForTimeout(500);
+ await page.screenshot({path:shot('settings')});
+ await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(500);
+ await page.screenshot({path:shot('desktop')});
+ const stored = await page.evaluate(() => JSON.parse(JSON.parse(localStorage.getItem('flutter.bodylog.v1'))));
+ console.log(JSON.stringify({errors,title:await page.title(),records:stored.records.length}));
+ await browser.close();
+ if(errors.length)process.exitCode=1;
+})();

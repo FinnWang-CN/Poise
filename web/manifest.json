@@ -1,0 +1,35 @@
+{
+  "name": "Poise · 轻衡",
+  "short_name": "Poise",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#176E66",
+  "theme_color": "#176E66",
+  "description": "A private body journal for weight, body fat and trends.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/Icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
