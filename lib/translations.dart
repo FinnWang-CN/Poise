@@ -1,5 +1,14 @@
 // UI catalog. Imported field keys and stored measurements remain unchanged.
 const translations = <String, String>{
+  "支持 Poise": "Support Poise",
+  "赞赏作者": "Support the author",
+  "感谢你的支持": "Thank you for your support",
+  "感谢你支持 Poise 的持续开发。":
+      "Thank you for supporting the continued development of Poise.",
+  "Finn Wang 的微信赞赏码": "Finn Wang's WeChat appreciation code",
+  "可截图后在微信扫一扫中从相册识别。赞赏完全自愿，不影响任何功能。":
+      "Take a screenshot and select it from your album in WeChat Scan. Support is optional and does not affect any features.",
+
   "完成": "Done",
   "导入成功": "Import successful",
   "{0} 天 Keep 数据已保存到 Poise。": "{0} days of Keep data saved to Poise.",
@@ -118,7 +127,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.8.3 · 身体记录": "Poise 0.8.3 · Body Journal",
+  "轻衡 0.8.4 · 身体记录": "Poise 0.8.4 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",

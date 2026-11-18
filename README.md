@@ -10,6 +10,8 @@ Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smo
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
 
+In 0.8.4, Settings ends with “Support the author”, showing the original WeChat appreciation code with screenshot instructions. Support is optional.
+
 In 0.8.3, entry, profile and backup forms use compact keyboard-aware bottom sheets. Labels stay outside input borders, fields scroll above the keyboard, and Cancel / Save are right-aligned text actions. Large text no longer wraps the bottom navigation. The website supports a persistent light / dark theme.
 
 Keep results open in a bottom sheet with a fixed confirmation button. Close without saving, reopen the preview, or confirm to save and see a success dialog. Keep authorization currently requires manually returning to Poise after confirming in Keep.
@@ -35,6 +37,8 @@ Screenshots use fictional demo data. 截图均为虚构演示数据。
 Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS 与 Web。初次启动无虚构记录，可在设置中明确启用演示数据。
 
 ## 已实现
+
+0.8.4：设置页末尾新增“赞赏作者”，展示原始微信赞赏码，可截图后在微信中识别，赞赏完全自愿。
 
 0.8.3：新增/编辑记录、身高目标和备份导入采用紧凑底部表单；标签独立显示，键盘弹出时内容可滚动，取消/保存为靠右文字操作。修复大字体英文导航溢出，官网支持记忆深浅色选择。
 

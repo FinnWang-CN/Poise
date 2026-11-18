@@ -1,3 +1,4 @@
+import 'support_author.dart';
 import 'keep_page.dart';
 import 'keep_icon.dart';
 import 'form_sheet.dart';
@@ -1602,10 +1603,23 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       ),
+      settingGroup('支持 Poise', [
+        ListTile(
+          leading: settingIcon(CupertinoIcons.gift, Color(0xFFC99532)),
+          title: Text(tr(context, '赞赏作者')),
+          subtitle: Text(tr(context, '感谢你的支持')),
+          trailing: Icon(
+            CupertinoIcons.chevron_forward,
+            size: 15,
+            color: paletteOf(context).secondary,
+          ),
+          onTap: () => showAuthorSupport(context),
+        ),
+      ]),
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.3 · 身体记录'),
+          tr(context, '轻衡 0.8.4 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),
