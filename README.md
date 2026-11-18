@@ -1,6 +1,6 @@
 # Poise · 轻衡
 
-[软件主页 / Website](https://poise.onepeak.cn/) · [Download Android APK / 下载安卓版](https://github.com/wang161113/Poise/releases/latest)
+[软件主页 / Website](https://poise.onepeak.cn/) · [Download Android APK / 下载安卓版](https://github.com/FinnWang-CN/Poise/releases/latest)
 
 Poise means balance and composure. A local-first Flutter body journal for Android, iOS and Web, with English and Chinese UI. Switch under **Settings → Language → 中文 / English / System**. Existing installations keep Chinese until you change the setting.
 
