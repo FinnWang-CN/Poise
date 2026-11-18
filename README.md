@@ -6,6 +6,17 @@ Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smo
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
 
+## Screenshots / 界面预览
+
+Screenshots use fictional demo data. 截图均为虚构演示数据。
+
+| 中文 | English |
+| --- | --- |
+| <img src="docs/screenshots/calendar.png" width="280" alt="中文体重日历与每日记录"> | <img src="docs/screenshots/calendar-en.png" width="280" alt="English body calendar and daily entries"> |
+| <img src="docs/screenshots/trend.png" width="280" alt="中文体重与体脂趋势"> | <img src="docs/screenshots/trend-en.png" width="280" alt="English weight and body fat trends"> |
+
+[中文深色模式](docs/screenshots/calendar-dark.png) · [English dark mode](docs/screenshots/settings-en-dark.png)
+
 ## 中文说明
 
 Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS 与 Web。初次启动无虚构记录，可在设置中明确启用演示数据。
@@ -77,9 +88,6 @@ python3 -m http.server 4173 --directory build/web
 
 Health Connect / HealthKit 接入方式、权限和安装步骤见 [健康数据说明](docs/HEALTH.md)。蓝牙秤直连、后台同步和云端同步尚未实现。详见 [实施计划](docs/PLAN.md)。
 
-## 预览
-
-[日历截图](docs/screenshots/calendar.png) · [趋势截图](docs/screenshots/trend.png) · [English](docs/screenshots/calendar-en.png) · [English dark](docs/screenshots/settings-en-dark.png)
 
 ## 第三方组件
 

@@ -1,0 +1,48 @@
+name: Publish verified APK
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft release tag
+        required: true
+        default: v0.6.0
+      apk_url:
+        description: Temporary APK download URL from litter.catbox.moe
+        required: true
+      sha256:
+        description: Verified APK SHA-256
+        required: true
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      APK_URL: ${{ inputs.apk_url }}
+      APK_SHA256: ${{ inputs.sha256 }}
+    steps:
+      - name: Validate inputs and download APK
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import os, re, urllib.parse
+          assert re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+', os.environ['RELEASE_TAG'])
+          assert re.fullmatch(r'[a-f0-9]{64}', os.environ['APK_SHA256'])
+          url = urllib.parse.urlparse(os.environ['APK_URL'])
+          assert url.scheme == 'https' and url.hostname == 'litter.catbox.moe'
+          PYTHON
+          export APK_NAME="poise-${RELEASE_TAG#v}-universal.apk"
+          curl --fail --location --proto '=https' --max-time 180 "$APK_URL" --output "$APK_NAME"
+          printf '%s  %s\n' "$APK_SHA256" "$APK_NAME" > "$APK_NAME.sha256"
+          sha256sum --check "$APK_NAME.sha256"
+      - name: Attach APK and publish draft
+        shell: bash
+        run: |
+          APK_NAME="poise-${RELEASE_TAG#v}-universal.apk"
+          gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft' | grep -qx true
+          gh release upload "$RELEASE_TAG" "$APK_NAME" "$APK_NAME.sha256"
+          gh release edit "$RELEASE_TAG" --draft=false --latest
