@@ -29,3 +29,4 @@ html[data-theme="dark"] .faq-list summary:after{color:var(--teal)}
 body{overflow-x:clip}
 
 .theme-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:1051px) and (max-width:1449px){.hero-visual .orb,.hero-visual .orbit-text{right:-35px}}
