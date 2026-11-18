@@ -1,5 +1,6 @@
 import 'keep_page.dart';
 import 'keep_icon.dart';
+import 'form_sheet.dart';
 import 'health_service.dart';
 import 'health_sync.dart';
 import 'language.dart';
@@ -283,6 +284,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         context: context,
         builder:
             (c) => AlertDialog(
+              scrollable: true,
               title: Text(tr(context, title)),
               content: Text(tr(context, body)),
               actions: [
@@ -1603,7 +1605,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.2 · 身体记录'),
+          tr(context, '轻衡 0.8.3 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),
@@ -1616,6 +1618,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         context: context,
         builder:
             (c) => AlertDialog(
+              scrollable: true,
               title: Text(tr(context, 'Keep 记录')),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1672,17 +1675,74 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           DateTime.now().minute,
         );
     String? timeError;
-    final result = await showDialog<Object>(
+    final result = await showModalBottomSheet<Object>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
       context: context,
       builder:
           (c) => StatefulBuilder(
             builder:
-                (c, refresh) => AlertDialog(
+                (c, refresh) => FormSheet(
                   title: Text(
                     tr(context, existing == null ? '记录身体变化' : '编辑记录'),
                   ),
-                  content: SizedBox(
-                    width: 380,
+                  actions: [
+                    if (existing != null)
+                      TextButton(
+                        onPressed: () => Navigator.pop(c, 'delete'),
+                        child: Text(
+                          tr(context, '删除'),
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(c),
+                      child: Text(tr(context, '取消')),
+                    ),
+                    TextButton(
+                      key: const ValueKey('form-submit'),
+                      style: TextButton.styleFrom(
+                        textStyle: const TextStyle(
+                          fontFamily: 'NotoSansSC',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: () {
+                        if (form.currentState!.validate()) {
+                          final error = manualTimeError(time, DateTime.now());
+                          if (error != null) {
+                            refresh(() => timeError = error);
+                            return;
+                          }
+                          Navigator.pop(
+                            c,
+                            Measurement(
+                              id:
+                                  existing?.id ??
+                                  '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 30)}',
+                              time: time,
+                              kg:
+                                  double.parse(weight.text) /
+                                  (data.jin ? 2 : 1),
+                              fat: double.tryParse(fat.text),
+                              note: note.text.trim(),
+                              extras: existing?.extras ?? {},
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(tr(context, '保存')),
+                    ),
+                  ],
+                  child: SizedBox(
+                    width: double.infinity,
                     child: SingleChildScrollView(
                       child: Form(
                         key: form,
@@ -1723,14 +1783,48 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                         )
                                         .toList(),
                               ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    tr(context, '体重'),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  data.unit,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: paletteOf(c).secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
                             TextFormField(
+                              key: const ValueKey('manual-weight'),
                               controller: weight,
+                              textInputAction: TextInputAction.next,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                height: 1.2,
+                                fontWeight: FontWeight.w600,
+                              ),
                               autofocus: existing == null,
                               keyboardType: TextInputType.numberWithOptions(
                                 decimal: true,
                               ),
                               decoration: InputDecoration(
-                                labelText: tr(context, '体重 (${data.unit})'),
+                                hintText: '0.00',
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.never,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 9,
+                                ),
                               ),
                               validator: (v) {
                                 final n = double.tryParse(v ?? '');
@@ -1748,13 +1842,32 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               },
                             ),
                             SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                tr(context, '体脂率 %（选填）'),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
                             TextFormField(
                               controller: fat,
+                              textInputAction: TextInputAction.next,
                               keyboardType: TextInputType.numberWithOptions(
                                 decimal: true,
                               ),
                               decoration: InputDecoration(
-                                labelText: tr(context, '体脂率 %（选填）'),
+                                hintText: '—',
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.never,
+                                suffixText: '%',
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 9,
+                                ),
                               ),
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) return null;
@@ -1769,6 +1882,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                             ),
                             SizedBox(height: 8),
                             ListTile(
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
                               contentPadding: EdgeInsets.zero,
                               title: Text(tr(context, dateLabel(time))),
                               trailing: Icon(Icons.calendar_today_outlined),
@@ -1800,6 +1915,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               },
                             ),
                             ListTile(
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
                               contentPadding: EdgeInsets.zero,
                               title: Text(
                                 tr(
@@ -1854,9 +1971,14 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                             TextFormField(
                               controller: note,
                               maxLength: 500,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted:
+                                  (_) => FocusScope.of(c).unfocus(),
                               maxLines: 2,
                               decoration: InputDecoration(
-                                labelText: tr(context, '备注（选填）'),
+                                hintText: tr(context, '备注（选填）'),
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.never,
                               ),
                             ),
                           ],
@@ -1864,47 +1986,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
-                  actions: [
-                    if (existing != null)
-                      TextButton(
-                        onPressed: () => Navigator.pop(c, 'delete'),
-                        child: Text(
-                          tr(context, '删除'),
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(c),
-                      child: Text(tr(context, '取消')),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        if (form.currentState!.validate()) {
-                          final error = manualTimeError(time, DateTime.now());
-                          if (error != null) {
-                            refresh(() => timeError = error);
-                            return;
-                          }
-                          Navigator.pop(
-                            c,
-                            Measurement(
-                              id:
-                                  existing?.id ??
-                                  '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 30)}',
-                              time: time,
-                              kg:
-                                  double.parse(weight.text) /
-                                  (data.jin ? 2 : 1),
-                              fat: double.tryParse(fat.text),
-                              note: note.text.trim(),
-                              extras: existing?.extras ?? {},
-                            ),
-                          );
-                        }
-                      },
-                      child: Text(tr(context, '保存')),
-                    ),
-                  ],
                 ),
           ),
     );
@@ -1944,55 +2025,33 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     final g = TextEditingController(
       text: data.displayWeight(data.goal).toStringAsFixed(1),
     );
-    final next = await showDialog<BodyData>(
+    final next = await showModalBottomSheet<BodyData>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
       context: context,
       builder:
-          (c) => AlertDialog(
+          (c) => FormSheet(
             title: Text(tr(context, '身高与目标')),
-            content: Form(
-              key: form,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: h,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: tr(context, '身高 cm'),
-                    ),
-                    validator: (v) {
-                      final n = double.tryParse(v ?? '');
-                      return n == null || !n.isFinite || n < 80 || n > 250
-                          ? tr(context, '请输入 80–250 cm')
-                          : null;
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: g,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: tr(context, '目标体重 ${data.unit}'),
-                    ),
-                    validator: (v) {
-                      final n = double.tryParse(v ?? '');
-                      final kg = n == null ? null : n / (data.jin ? 2 : 1);
-                      return kg == null || !kg.isFinite || kg < 10 || kg > 500
-                          ? tr(context, '请输入有效目标体重')
-                          : null;
-                    },
-                  ),
-                ],
-              ),
-            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(c),
                 child: Text(tr(context, '取消')),
               ),
-              FilledButton(
+              TextButton(
+                key: const ValueKey('form-submit'),
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(
+                    fontFamily: 'NotoSansSC',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onPressed: () {
                   if (form.currentState!.validate()) {
                     Navigator.pop(
@@ -2007,6 +2066,72 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                 child: Text(tr(context, '保存')),
               ),
             ],
+            child: SingleChildScrollView(
+              child: Form(
+                key: form,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        tr(context, '身高 cm'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: h,
+                      textInputAction: TextInputAction.next,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: '170',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                      ),
+                      validator: (v) {
+                        final n = double.tryParse(v ?? '');
+                        return n == null || !n.isFinite || n < 80 || n > 250
+                            ? tr(context, '请输入 80–250 cm')
+                            : null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        tr(context, '目标体重 ${data.unit}'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: g,
+                      textInputAction: TextInputAction.done,
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: '—',
+                        floatingLabelBehavior: FloatingLabelBehavior.never,
+                      ),
+                      validator: (v) {
+                        final n = double.tryParse(v ?? '');
+                        final kg = n == null ? null : n / (data.jin ? 2 : 1);
+                        return kg == null || !kg.isFinite || kg < 10 || kg > 500
+                            ? tr(context, '请输入有效目标体重')
+                            : null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
     );
     Future.delayed(Duration(seconds: 1), () {
@@ -2053,30 +2178,35 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   Future<void> restore() async {
     final text = TextEditingController();
     String? error;
-    final next = await showDialog<BodyData>(
+    final next = await showModalBottomSheet<BodyData>(
+      isScrollControlled: true,
+      useSafeArea: true,
+      constraints: const BoxConstraints(maxWidth: 560),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
       context: context,
       builder:
           (c) => StatefulBuilder(
             builder:
-                (c, refresh) => AlertDialog(
+                (c, refresh) => FormSheet(
                   title: Text(tr(context, '导入备份')),
-                  content: SizedBox(
-                    width: 450,
-                    child: TextField(
-                      controller: text,
-                      maxLines: 10,
-                      decoration: InputDecoration(
-                        hintText: tr(context, '粘贴轻衡 JSON 备份'),
-                        errorText: error == null ? null : tr(context, error!),
-                      ),
-                    ),
-                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(c),
                       child: Text(tr(context, '取消')),
                     ),
-                    FilledButton(
+                    TextButton(
+                      key: const ValueKey('form-submit'),
+                      style: TextButton.styleFrom(
+                        textStyle: const TextStyle(
+                          fontFamily: 'NotoSansSC',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       onPressed: () {
                         try {
                           if (text.text.length > 10000000) {
@@ -2091,6 +2221,21 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                       child: Text(tr(context, '校验备份')),
                     ),
                   ],
+                  child: SingleChildScrollView(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextField(
+                        controller: text,
+                        minLines: 4,
+                        maxLines: 6,
+                        decoration: InputDecoration(
+                          hintText: tr(context, '粘贴轻衡 JSON 备份'),
+                          errorMaxLines: 3,
+                          errorText: error == null ? null : tr(context, error!),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
           ),
     );

@@ -125,6 +125,7 @@ class _HealthPageState extends State<HealthPage> {
         context: context,
         builder:
             (c) => AlertDialog(
+              scrollable: true,
               title: Text(tr(context, '导入读取结果')),
               content: Text(
                 tr(
@@ -185,6 +186,7 @@ class _HealthPageState extends State<HealthPage> {
       context: context,
       builder:
           (c) => AlertDialog(
+            scrollable: true,
             title: Text(tr(context, '移除健康数据副本？')),
             content: Text(
               tr(context, '移除本地健康数据并关闭自动同步。手动记录和系统原始数据会保留，需要时可重新导入。'),

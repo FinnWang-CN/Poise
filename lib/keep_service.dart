@@ -331,7 +331,7 @@ class KeepService {
     await _wire('initialize', {
       'protocolVersion': '2025-03-26',
       'capabilities': {},
-      'clientInfo': {'name': 'Poise', 'version': '0.8.2'},
+      'clientInfo': {'name': 'Poise', 'version': '0.8.3'},
     });
     await _wire('notifications/initialized', null, notification: true);
     _ready = true;

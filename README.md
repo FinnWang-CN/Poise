@@ -10,7 +10,9 @@ Track weight, body fat, BMI and imported Fitdays metrics with a calendar and smo
 
 Built with Flutter 3.29.3 / Dart 3.7.2. Run `flutter pub get`, then `flutter run`. Use `flutter analyze` and `flutter test` for validation. Before building an Android release, create your own local test keystore using [the setup instructions](docs/HEALTH.md); signing keys are excluded from this repository. Linux cannot build an iOS IPA; use macOS with Xcode. Health integration still requires real-device verification.
 
-In 0.8.2, Keep results open in a bottom sheet with a fixed confirmation button. Close without saving, reopen the preview, or confirm to save and see a success dialog. Keep authorization currently requires manually returning to Poise after confirming in Keep.
+In 0.8.3, entry, profile and backup forms use compact keyboard-aware bottom sheets. Labels stay outside input borders, fields scroll above the keyboard, and Cancel / Save are right-aligned text actions. Large text no longer wraps the bottom navigation. The website supports a persistent light / dark theme.
+
+Keep results open in a bottom sheet with a fixed confirmation button. Close without saving, reopen the preview, or confirm to save and see a success dialog. Keep authorization currently requires manually returning to Poise after confirming in Keep.
 
 The compact interface keeps more content on screen. Language and appearance share one preferences card; detailed import rules and health-data explanations expand on demand.
 
@@ -26,7 +28,7 @@ Screenshots use fictional demo data. 截图均为虚构演示数据。
 
 [中文深色模式](docs/screenshots/calendar-dark.png) · [English dark mode](docs/screenshots/settings-en-dark.png)
 
-[导入文件](docs/screenshots/file-import.png) · [Import file](docs/screenshots/file-import-en.png) · [记录编辑](docs/screenshots/editor.png) · [Entry editor](docs/screenshots/editor-en.png)
+[导入文件](docs/screenshots/file-import.png) · [Import file](docs/screenshots/file-import-en.png) · [记录编辑](docs/screenshots/editor.png) · [Entry editor](docs/screenshots/editor-en.png) · [深色编辑表单 / Dark editor](docs/screenshots/editor-en-dark.png)
 
 ## 中文说明
 
@@ -34,7 +36,9 @@ Flutter 健康记录 App，参考体重日历界面实现，支持 Android、iOS
 
 ## 已实现
 
-0.8.2：Keep 读取完成后弹出底部确认面板，预览内容可滚动，确认按钮固定在底部；关闭不保存，可重新打开结果。导入成功后弹窗提示保存天数。Keep 授权检测本机安装并直接唤起，入口使用官方图标。**Keep 身体记录**，支持 App 内授权、设备安全保存登录、读取并预览日期级体重/体脂，确认后进入日历和趋势。最新身高可选导入，Keep BMI 单独展示；详见 [Keep 接入说明](docs/KEEP.md)。
+0.8.3：新增/编辑记录、身高目标和备份导入采用紧凑底部表单；标签独立显示，键盘弹出时内容可滚动，取消/保存为靠右文字操作。修复大字体英文导航溢出，官网支持记忆深浅色选择。
+
+Keep 读取完成后弹出底部确认面板，预览内容可滚动，确认按钮固定在底部；关闭不保存，可重新打开结果。导入成功后弹窗提示保存天数。Keep 授权检测本机安装并直接唤起，入口使用官方图标。**Keep 身体记录**，支持 App 内授权、设备安全保存登录、读取并预览日期级体重/体脂，确认后进入日历和趋势。最新身高可选导入，Keep BMI 单独展示；详见 [Keep 接入说明](docs/KEEP.md)。
 
 - 月历显示每日最后一次体重，月份切换、回到今天、全天/早上/下午/晚上筛选。
 - 同日多次测量，手动新增、修改、删除，体脂选填与备注；手动记录不能保存未来时间。
@@ -92,7 +96,7 @@ python3 -m http.server 4173 --directory build/web
 ## 验证情况
 
 - `flutter analyze`：无问题。
-- `flutter test`：68 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
+- `flutter test`：72 项通过，包含业务规则、备份校验、存储重读、新增编辑删除、320/390 宽布局、缺失体脂、存储损坏保护。
 - Web release 构建通过；Chromium 手机尺寸页面检查，截图为明确标注的演示数据。
 - Android release APK 构建与签名检查见交付验证记录；未进行模拟器、真机读取验证。iOS 已配置接入，Linux 环境未构建 IPA。
 

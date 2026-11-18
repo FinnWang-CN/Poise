@@ -410,12 +410,16 @@ class FrostedTabs extends StatelessWidget {
                             Icon(
                               icons[i],
                               size: 23,
+                              applyTextScaling: false,
                               color:
                                   selected == i ? p.accentColor : p.secondary,
                             ),
                             SizedBox(height: 5),
                             Text(
                               tr(context, labels[i]),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight:

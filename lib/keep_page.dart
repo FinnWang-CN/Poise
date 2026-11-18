@@ -187,6 +187,7 @@ class _KeepPageState extends State<KeepPage> {
         context: context,
         builder:
             (dialogContext) => AlertDialog(
+              scrollable: true,
               icon: Icon(
                 CupertinoIcons.check_mark_circled_solid,
                 color: paletteOf(context).accentColor,
@@ -258,6 +259,7 @@ class _KeepPageState extends State<KeepPage> {
       context: context,
       builder:
           (c) => AlertDialog(
+            scrollable: true,
             title: Text(tr(context, '移除 Keep 数据副本？')),
             content: Text(
               tr(context, '只移除 Poise 内的 Keep 记录，手动记录、健康数据和 Keep 原始记录均保留。'),
