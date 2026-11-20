@@ -146,7 +146,7 @@ const translations = <String, String>{
   "演示数据 · 第二次测量": "Demo data · Second measurement",
   "轻衡": "Poise",
   "轻衡 · 身体记录": "Poise · Body Journal",
-  "轻衡 0.8.5 · 身体记录": "Poise 0.8.5 · Body Journal",
+  "轻衡 0.8.6 · 身体记录": "Poise 0.8.6 · Body Journal",
   "日历": "Calendar",
   "趋势": "Trends",
   "设置": "Settings",
