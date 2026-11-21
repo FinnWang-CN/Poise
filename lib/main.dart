@@ -1,3 +1,4 @@
+import 'calendar_month_transition.dart';
 import 'comparison_page.dart';
 import 'support_author.dart';
 import 'keep_page.dart';
@@ -571,9 +572,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   Widget calendarPage() {
     final records = data.onDay(selected, period).reversed.toList();
-    final first = DateTime(month.year, month.month, 1);
+    final calendarMonth = month;
+    final first = DateTime(calendarMonth.year, calendarMonth.month, 1);
     final offset = first.weekday % 7;
-    final length = DateTime(month.year, month.month + 1, 0).day;
+    final length = DateTime(calendarMonth.year, calendarMonth.month + 1, 0).day;
     final cells = ((offset + length) / 7).ceil() * 7;
     return LayoutBuilder(
       builder: (context, box) {
@@ -731,111 +733,121 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                                           .toList(),
                                 ),
                                 SizedBox(height: 6),
-                                GridView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: cells,
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 7,
-                                        mainAxisExtent: rowHeight,
-                                      ),
-                                  itemBuilder: (c, i) {
-                                    final day = first.add(
-                                      Duration(days: i - offset),
-                                    );
-                                    final inMonth = day.month == month.month;
-                                    final list = data.onDay(day, period);
-                                    final active = day == selected;
-                                    return Padding(
-                                      padding: EdgeInsets.all(2),
-                                      child: Material(
-                                        color:
-                                            active
-                                                ? paletteOf(context).accentColor
-                                                : day == dayOf(DateTime.now())
-                                                ? paletteOf(context).accentColor
-                                                    .withValues(alpha: .07)
-                                                : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: InkWell(
+                                CalendarMonthTransition(
+                                  month: calendarMonth,
+                                  child: GridView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: cells,
+                                    gridDelegate:
+                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 7,
+                                          mainAxisExtent: rowHeight,
+                                        ),
+                                    itemBuilder: (c, i) {
+                                      final day = first.add(
+                                        Duration(days: i - offset),
+                                      );
+                                      final inMonth =
+                                          day.month == calendarMonth.month;
+                                      final list = data.onDay(day, period);
+                                      final active = day == selected;
+                                      return Padding(
+                                        padding: EdgeInsets.all(2),
+                                        child: Material(
+                                          color:
+                                              active
+                                                  ? paletteOf(
+                                                    context,
+                                                  ).accentColor
+                                                  : day == dayOf(DateTime.now())
+                                                  ? paletteOf(context)
+                                                      .accentColor
+                                                      .withValues(alpha: .07)
+                                                  : Colors.transparent,
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
-                                          onTap:
-                                              () => setState(() {
-                                                selected = day;
-                                                if (!inMonth) {
-                                                  month = DateTime(
-                                                    day.year,
-                                                    day.month,
-                                                  );
-                                                }
-                                              }),
-                                          child: Center(
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(
-                                                    tr(context, '${day.day}'),
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color:
-                                                          active
-                                                              ? paletteOf(
-                                                                context,
-                                                              ).onAccent
-                                                              : inMonth
-                                                              ? paletteOf(
-                                                                context,
-                                                              ).text
-                                                              : Colors
-                                                                  .grey
-                                                                  .shade400,
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            onTap:
+                                                () => setState(() {
+                                                  selected = day;
+                                                  if (!inMonth) {
+                                                    month = DateTime(
+                                                      day.year,
+                                                      day.month,
+                                                    );
+                                                  }
+                                                }),
+                                            child: Center(
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      tr(context, '${day.day}'),
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color:
+                                                            active
+                                                                ? paletteOf(
+                                                                  context,
+                                                                ).onAccent
+                                                                : inMonth
+                                                                ? paletteOf(
+                                                                  context,
+                                                                ).text
+                                                                : Colors
+                                                                    .grey
+                                                                    .shade400,
+                                                      ),
                                                     ),
-                                                  ),
-                                                  SizedBox(height: 2),
-                                                  Text(
-                                                    tr(
-                                                      context,
-                                                      list.isEmpty
-                                                          ? ''
-                                                          : data
-                                                              .displayWeight(
-                                                                list.last.kg,
-                                                              )
-                                                              .toStringAsFixed(
-                                                                1,
-                                                              ),
+                                                    SizedBox(height: 2),
+                                                    Text(
+                                                      tr(
+                                                        context,
+                                                        list.isEmpty
+                                                            ? ''
+                                                            : data
+                                                                .displayWeight(
+                                                                  list.last.kg,
+                                                                )
+                                                                .toStringAsFixed(
+                                                                  1,
+                                                                ),
+                                                      ),
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color:
+                                                            active
+                                                                ? paletteOf(
+                                                                  context,
+                                                                ).onAccent
+                                                                : inMonth
+                                                                ? paletteOf(
+                                                                  context,
+                                                                ).accentColor
+                                                                : Colors
+                                                                    .grey
+                                                                    .shade400,
+                                                      ),
                                                     ),
-                                                    style: TextStyle(
-                                                      fontSize: 10,
-                                                      color:
-                                                          active
-                                                              ? paletteOf(
-                                                                context,
-                                                              ).onAccent
-                                                              : inMonth
-                                                              ? paletteOf(
-                                                                context,
-                                                              ).accentColor
-                                                              : Colors
-                                                                  .grey
-                                                                  .shade400,
-                                                    ),
-                                                  ),
-                                                ],
+                                                  ],
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
@@ -1675,7 +1687,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       Padding(
         padding: EdgeInsets.all(20),
         child: Text(
-          tr(context, '轻衡 0.8.6 · 身体记录'),
+          tr(context, '轻衡 0.8.7 · 身体记录'),
           textAlign: TextAlign.center,
           style: TextStyle(color: paletteOf(context).secondary, fontSize: 11),
         ),
