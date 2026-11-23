@@ -1,0 +1,15 @@
+# Poise 轻衡
+
+> Poise 轻衡 is a local-first journal for weight and body fat on Android. It supports manual entries, trend and record comparisons, Health Connect, Keep and Fitdays import, and JSON backup. Poise is intended for personal tracking.
+
+- [中文官网](https://poise.onepeak.cn/)
+- [Official English site](https://poise.onepeak.cn/en/)
+- [Official Android releases and checksum information](https://github.com/FinnWang-CN/Poise/releases)
+- Android download requires Android 8.0 or later. HealthKit support exists in the source, while an installable iOS release is currently unavailable.
+- Imported measurements stay on the device. Poise reads connected system health data and does not modify original Keep records.
+
+## Related projects / 相关项目
+
+- [OnePeak](https://onepeak.cn/)
+- [File Occupied Release](https://fileoccupiedrelease.onepeak.cn/)
+- [KeyPresser](https://keypresser.onepeak.cn/)
